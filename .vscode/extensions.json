@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "me-dutour-mathieu.vscode-github-actions"
+    ],
+    "unwantedRecommendations": [
+        // doesn't play well with Jujutsu
+        "eamodio.gitlens",
+        // doesn't work inside devcontainer on local
+        "github.vscode-github-actions"
+    ]
+}
