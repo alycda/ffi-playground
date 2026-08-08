@@ -23,7 +23,7 @@ jobs:
       - name: "mdbook"
         run: | 
           cargo install mdbook just
-          just build-book-gha
+          just _build-book-gha
       
       # OPTIONAL: Replace the above with one of these for your project:
       #
