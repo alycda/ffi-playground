@@ -3,9 +3,13 @@
 # so derive it here and they behave the same in and out of the container.
 export USER := shell("whoami")
 
+# the first recipe is the default
 _default:
     @just --list
 
+check:
+    -./scripts/self-check.sh
+    
 # list the cheatsheets in .cheat
 cheats:
     cheat -l
