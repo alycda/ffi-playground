@@ -94,9 +94,14 @@ tracks_ready=0
 echo
 echo "Optional language tracks (pick ONE for Exercise 3):"
 if check_optional "Swift"   "swiftc"  "run: just setup-swift"; then tracks_ready=$((tracks_ready + 1)); fi
-if command -v kotlinc >/dev/null 2>&1 && command -v java >/dev/null 2>&1; then
+# `java -version` instead of `command -v java`: macOS ships a /usr/bin/java
+# stub that exists but exits 1 ("Unable to locate a Java Runtime") until a
+# real JDK is linked — the keg-only case setup-kotlin's symlink hint covers.
+if command -v kotlinc >/dev/null 2>&1 && java -version >/dev/null 2>&1; then
   printf ' %s %-12s ready\n' "$PASS" "Kotlin/JNI"
   tracks_ready=$((tracks_ready + 1))
+elif command -v kotlinc >/dev/null 2>&1; then
+  printf ' %s %-12s kotlinc found, java not runnable %s(macOS: link the keg-only JDK — re-run: just setup-kotlin for the command)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
 else
   printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — run: just setup-kotlin)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
 fi
