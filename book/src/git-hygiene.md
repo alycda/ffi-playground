@@ -11,7 +11,7 @@ Git needs no introduction—it's the ubiquitous version control system you alrea
 
 ## The Initial Commit
 
-This repository started with a single commit ([821861c](https://github.com/alyssa-e/dev/commit/821861c9bc14679aa12fd1b7c8833219ce0a1616)) containing only a `.gitignore`:
+The template this repository was cloned from started with a single commit containing only a `.gitignore`:
 
 ```gitignore
 # Ignore build outputs from performing a nix-build or `nix build` command
@@ -30,18 +30,20 @@ This template is a Nix-based development environment, but the principle applies 
 
 ### Step Zero, Not Step One
 
-Most tutorials treat `.gitignore` as an afterthought—something you add when you notice unwanted files sneaking into your commits. This is a mistake, especially if you plan to use advanced version control tools.
+Most tutorials treat `.gitignore` as an afterthought—something you add when you notice unwanted files sneaking into your commits. This is a mistake, and the bill comes due the first time you need to rewrite history.
 
-### The Jujutsu Problem
+### The Cost Shows Up Later
 
-Later in this book, we'll cover [Jujutsu](https://martinvonz.github.io/jj/), a Git-compatible VCS that makes time-travel through your repository history trivially easy. Want to go back to an earlier commit, make a change, and have it propagate forward? Jujutsu handles this elegantly.
+Every interesting Git operation replays old commits: `rebase` reapplies your work onto a new base, `cherry-pick` lifts one commit somewhere else, `bisect` checks out arbitrary points in the past to find where a bug appeared.
 
-But here's the catch: if your early commits contain files that *should* have been ignored—build artifacts, editor configs, generated files—walking backwards in time becomes messy. You'll encounter merge conflicts with files that shouldn't exist. You'll have to deal with noise that obscures the actual changes you care about.
+If your early commits contain files that *should* have been ignored—build artifacts, editor configs, generated files—each of those operations drags them along. You get conflicts in files nobody edited on purpose, because two branches both regenerated the same `target/` directory differently. You get diffs where three real lines hide inside three hundred generated ones. And `bisect` starts checking out revisions whose committed build output doesn't match the source, so the build you're testing isn't the build you think it is.
+
+Removing the files later doesn't undo this. A `.gitignore` added in commit fifty doesn't retroactively clean commits one through forty-nine—the objects are still in history, still replayed by every rebase, still cloned by everyone. Getting them out means `git filter-repo` and a force-push that rewrites every hash, which is a bad afternoon and a worse conversation with your collaborators.
 
 By establishing ignore patterns in the literal first commit, you ensure that:
 
 1. **No garbage ever enters the repository** - Build outputs, cache directories, and environment-specific files are excluded from day one
-2. **History stays clean** - Time-travel operations (rebasing, evolving, etc.) work smoothly
+2. **History stays clean** - Rebasing, cherry-picking, and bisecting work smoothly
 3. **The pattern is established** - Contributors see immediately that this project takes repository hygiene seriously
 
 ## For Any Project
@@ -53,7 +55,6 @@ While this template uses Nix, the same principle applies everywhere:
 - **Node.js**: Ignore `node_modules/`, `.next/`, `dist/`
 - **Python**: Ignore `__pycache__/`, `*.pyc`, `.venv/`, `*.egg-info/`
 - **Rust**: Ignore `target/`
-- **Go**: Ignore binaries, `vendor/` (if not vendoring)
 
 The specific patterns vary; the principle doesn't. Start clean, stay clean.
 
