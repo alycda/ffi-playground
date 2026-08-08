@@ -53,7 +53,10 @@ all for you.
    [VS Code](https://code.visualstudio.com) with the
    [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 2. Open this repo in VS Code and choose **"Reopen in Container"** when
-   prompted.
+   prompted. VS Code will ask for an `ANTHROPIC_API_KEY` — it's declared as a
+   secret in [`.devcontainer/devcontainer.json`](./.devcontainer), and nothing
+   in the workshop reads it. Leave it blank unless you want Claude Code in the
+   container.
 3. Wait. The first build installs Nix and
    [home-manager](https://github.com/nix-community/home-manager) inside the
    container ([`.devcontainer/`](./.devcontainer) has the details) — it takes
@@ -75,7 +78,11 @@ given you:
 | [asciinema](https://asciinema.org) | terminal session recordings | `cargo install asciinema`, brew, pipx |
 | [tmux](https://github.com/tmux/tmux) | speaker-notes split layout | brew, apt, … |
 
-You won't get version pinning, and when your versions drift from everyone
+You won't get the tool set for free — that's the part `shell.nix` hands you,
+and here it's on you. Versions are on you either way: `shell.nix` is
+unpinned (`import <nixpkgs> {}`), so every path resolves whatever nixpkgs your
+channel points at. If the whole room needs identical versions, that takes a
+pinned nixpkgs, not a choice of option. When your versions drift from everyone
 else's, the skull emoji becomes self-explanatory. But it works.
 
 ## Did it work?
@@ -92,7 +99,17 @@ Bonus points:
 
 ```sh
 just present   # the slide deck should take over your terminal (q to quit)
-just book      # the workshop book should open in your browser
+just book      # serves the book at http://localhost:3000
 ```
+
+`just book` only pops a browser open by itself on a desktop macOS or Linux
+host. In WSL2 and in the container there's no desktop opener to call, so open
+that URL yourself — VS Code forwards the port for you.
+
+## If it didn't work
+
+Open an issue: https://github.com/alycda/ffi-playground/issues. Do it before
+the session rather than during it — a broken environment is much cheaper to
+fix the day before.
 
 See you at step 0.
