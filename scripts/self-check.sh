@@ -6,7 +6,7 @@
 # Exit code is non-zero only when a REQUIRED tool is missing or broken —
 # pick ONE optional track; you do not need them all.
 #
-# Usage: ./scripts/self-check.sh   (or: just self-check)
+# Usage: ./scripts/self-check.sh   (or: just check)
 
 set -u
 
@@ -41,10 +41,10 @@ check_optional() { # track, command, install hint
 echo "Workshop self-check — Using Advent of Code as an FFI Playground"
 echo
 echo "Required toolchain:"
-check_required "rustc"    "rustc"    "install via https://rustup.rs"
-check_required "cargo"    "cargo"    "comes with rustup — https://rustup.rs"
+check_required "rustc"    "rustc"    "nix shell provides it: direnv allow (no nix: https://rustup.rs)"
+check_required "cargo"    "cargo"    "nix shell provides it: direnv allow (no nix: comes with rustup)"
 check_required "git"      "git"      "https://git-scm.com/downloads (Xcode CLT on macOS: xcode-select --install)"
-check_required "cbindgen" "cbindgen" "cargo install cbindgen"
+check_required "cbindgen" "cbindgen" "nix shell provides it: direnv allow (no nix: cargo install cbindgen)"
 
 # C compiler: accept cc, clang, or gcc.
 c_compiler=""
