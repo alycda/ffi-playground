@@ -7,9 +7,10 @@ export USER := shell("whoami")
 _default:
     @just --list
 
+# verify the required toolchain and report optional language tracks
 check:
     -./scripts/self-check.sh
-    
+
 # Language-track setup (Exercise 3 — pick ONE track; see `just check`).
 # Required Rust/C toolchain comes from shell.nix, not from these recipes.
 
