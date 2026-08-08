@@ -8,6 +8,55 @@ result-*
 # Python track venv (created by `just setup-python`)
 .venv/
 
+# --- Language tracks ---
+# All tracks are ignored up front, even though Exercise 3 is pick-one:
+# trying another language is an extension exercise, and spare ignore
+# rules cost nothing. This is the book's "step zero" principle applied —
+# which is why the workshop skips the git step: it's already done here.
+
+# Rust
+# Source: https://github.com/github/gitignore/blob/main/Rust.gitignore (trimmed)
+# Pulled: 2026-08-08
+target/
+**/*.rs.bk
+*.pdb
+
+# C build artifacts and shared libraries (every track links against these)
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.out
+
+# Python (venv above)
+# Source: https://github.com/github/gitignore/blob/main/Python.gitignore (trimmed)
+# Pulled: 2026-08-08
+__pycache__/
+*.py[cod]
+
+# Swift
+# Source: https://github.com/github/gitignore/blob/main/Swift.gitignore (trimmed)
+# Pulled: 2026-08-08
+.build/
+DerivedData/
+
+# Kotlin/JNI (*.jar is ignored as a build output; vendor deps would need an exception)
+# Source: https://github.com/github/gitignore/blob/main/Kotlin.gitignore (trimmed)
+# Pulled: 2026-08-08
+*.class
+*.jar
+.gradle/
+build/
+
+# Dart
+# Source: https://github.com/github/gitignore/blob/main/Dart.gitignore (trimmed)
+# Pulled: 2026-08-08
+.dart_tool/
+
 # --- OS-specific (global) ---
 # Source: https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 # Pulled: 2026-08-08
