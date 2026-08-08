@@ -44,10 +44,13 @@ setup-kotlin:
     @echo "Recommended: sdkman — https://sdkman.io/install then:"
     @echo "  sdk install java 17-tem && sdk install kotlin"
 
-# Dart track: SDK via the official brew tap
+# Dart track: SDK via the official brew tap. Homebrew ≥6 refuses formulae
+# from untrusted third-party taps; `-` keeps older brews (no `trust`
+# subcommand) working.
 [macos]
 setup-dart:
     brew tap dart-lang/dart
+    -brew trust dart-lang/dart
     brew install dart
 
 # Dart track: distro installs vary — points at dart.dev
