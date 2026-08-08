@@ -76,22 +76,22 @@ fi
 
 echo
 echo "Optional language tracks (pick ONE for Exercise 3):"
-check_optional "Swift"      "swiftc"  "macOS: xcode-select --install · Linux: swift.org" || true
+check_optional "Swift"      "swiftc"  "run: just setup-swift" || true
 if command -v kotlinc >/dev/null 2>&1 && command -v java >/dev/null 2>&1; then
   printf ' %s %-12s ready\n' "$PASS" "Kotlin/JNI"
 else
-  printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — sdkman.io recommended; brew needs the openjdk symlink post-step, see SETUP.md)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
+  printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — run: just setup-kotlin)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
 fi
 if command -v python3 >/dev/null 2>&1; then
   if python3 -c 'import cffi' 2>/dev/null; then
     printf ' %s %-12s ready (cffi installed)\n' "$PASS" "Python"
   else
-    printf ' %s %-12s python3 found, cffi missing %s(from repo root: python3 -m venv .venv && source .venv/bin/activate && python -m pip install cffi)%s\n' "$SKIP" "Python" "$DIM" "$NC"
+    printf ' %s %-12s python3 found, cffi missing %s(run: just setup-python, then: source .venv/bin/activate)%s\n' "$SKIP" "Python" "$DIM" "$NC"
   fi
 else
-  printf ' %s %-12s not installed %s(python.org, 3.10+, then the venv + cffi steps in SETUP.md)%s\n' "$SKIP" "Python" "$DIM" "$NC"
+  printf ' %s %-12s not installed %s(python.org, 3.10+, then: just setup-python)%s\n' "$SKIP" "Python" "$DIM" "$NC"
 fi
-check_optional "Dart"       "dart"    "dart.dev/get-dart, SDK 3.0+" || true
+check_optional "Dart"       "dart"    "run: just setup-dart" || true
 
 echo
 if [ "$required_failures" -eq 0 ]; then

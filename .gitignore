@@ -5,6 +5,9 @@ result-*
 # Ignore automatically generated direnv output
 .direnv
 
+# Python track venv (created by `just setup-python`)
+.venv/
+
 # --- OS-specific (global) ---
 # Source: https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 # Pulled: 2026-08-08
