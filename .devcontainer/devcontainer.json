@@ -18,24 +18,18 @@
             "extensions": [
                 "alefragnani.bookmarks",
                 "anthropic.claude-code",
-                "jjk.jjk",
                 "jnoortheen.nix-ide",
                 "mk12.better-git-line-blame",
-                "skellock.just",
-                "visualjj.visualjj"
+                "skellock.just"
             ],
             "settings": {
                 "chat.agent.enabled": false,
                 "editor.wordWrap": "on",
                 "git.autofetch": true,
                 "git.confirmSync": false,
-                "git.enabled": false,
                 // "nix.enableLanguageServer": true, Command nil not found in $PATH (because it's installed later by direnv)
                 // "nix.serverPath": "rnix-lsp",
-                "sourceControl.providers": [
-                    "jujutsu"   // keep only the Jujutsu provider
-                ],
-                "workbench.secondarySideBar.defaultVisibility": "hidden",
+                "workbench.secondarySideBar.defaultVisibility": "hidden"
             }
         }
     },

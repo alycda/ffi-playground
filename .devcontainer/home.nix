@@ -9,9 +9,6 @@
   # Core tools available everywhere
   home.packages = with pkgs; [
     helix
-    ripgrep
-    jujutsu
-    gh
     claude-code
   ];
 
@@ -38,14 +35,6 @@
       fi
     '';
   };
-
-  # don't use, unsets the USER from poststart.sh
-  # programs.jujutsu = {
-  #   enable = true;
-  #   settings = {
-  #     ui.editor = "hx";
-  #   };
-  # };
 
   # Set globally
   home.sessionVariables = {
