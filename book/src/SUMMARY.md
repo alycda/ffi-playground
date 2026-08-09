@@ -1,3 +1,4 @@
 # Summary
 
-- [Git: Step Zero](./chapter_1.md)
+- [Step -1: Machine Provisioning](./provisioning.md)
+- [Git: Step Zero](./git-hygiene.md)

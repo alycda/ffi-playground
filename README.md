@@ -1,11 +1,14 @@
-# Step -1: Get Your Environment Working
+# Steps -1 & 0: Get Your Environment Working
 
-Before the workshop can start, your machine needs to be able to run it. That's
-this whole step — nothing else happens until this works.
+Before the workshop can start, your machine needs to be able to run it.
+That's all this is: **step -1** provisions the machine, **step 0** picks the
+language you'll pair with Rust. Nothing else happens until both work.
 
-Everything the workshop uses (`just`, `presenterm`, `mdbook`, `cheat`,
-`asciinema`, `tmux`) is declared in one file: [`shell.nix`](./shell.nix).
-How you get those tools onto your machine is up to you. Pick one:
+Everything the workshop requires — the Rust/C toolchain (`rustc`, `cargo`,
+`cbindgen`, a C compiler) plus the presenter tools (`just`, `presenterm`,
+`mdbook`, `cheat`, `asciinema`, `tmux`) — is declared in one file:
+[`shell.nix`](./shell.nix). How you get those tools onto your machine is up
+to you. Pick one:
 
 ## Option 1: macOS / Linux — Nix
 
@@ -71,6 +74,9 @@ given you:
 
 | Tool | What it's for | Where to get it |
 |------|---------------|-----------------|
+| [rustc + cargo](https://rustup.rs) | the workshop's core: building Rust FFI libraries | rustup |
+| [cbindgen](https://github.com/mozilla/cbindgen) | generating C headers from Rust | `cargo install cbindgen` |
+| C compiler | compiling/linking against your Rust libraries | Xcode CLT (`xcode-select --install`), apt/dnf `gcc` |
 | [just](https://github.com/casey/just) | task runner (`just <recipe>`) | `cargo install just`, brew, apt, … |
 | [presenterm](https://github.com/mfontanini/presenterm) | the slide deck, in your terminal | `cargo install presenterm`, brew |
 | [mdbook](https://rust-lang.github.io/mdBook/) | the workshop book | `cargo install mdbook`, brew |
@@ -85,19 +91,42 @@ channel points at. If the whole room needs identical versions, that takes a
 pinned nixpkgs, not a choice of option. When your versions drift from everyone
 else's, the skull emoji becomes self-explanatory. But it works.
 
+## Step 0: Pick a language track
+
+Machine provisioned? Then step -1 is done — step 0 is choosing which
+language you'll call Rust *from* in Exercise 3. Pick **one** — you don't
+need them all:
+
+```sh
+just setup-python   # repo-local venv with cffi (python3 comes from shell.nix)
+just setup-swift    # Swift    (installer on macOS; pointers on Linux)
+just setup-kotlin   # Kotlin/JNI (JDK 17+ + kotlinc; brew on macOS, sdkman on Linux)
+just setup-dart     # Dart     (brew tap on macOS; pointers on Linux)
+```
+
+Python note: after `just setup-python`, activate the venv with
+`source .venv/bin/activate` so the check below sees it. (💀 manual-setup
+folks: `shell.nix` isn't feeding you a `python3`, so bring your own, 3.10+.)
+
 ## Did it work?
 
 From the repo root (inside `nix-shell`, direnv, the container, or your
 hand-rolled environment):
 
 ```sh
-just
+just check
 ```
 
-If you see a list of recipes, your environment works and step -1 is done.
+It verifies the required toolchain (Rust, C compiler + linker, `cbindgen`) —
+including compiling and linking a real C executable, since a broken SDK path can
+hide behind an installed compiler — and reports which optional language
+tracks are ready. All required rows green = step -1 done; your chosen track
+ready = step 0 done. The other `○` rows can stay grey forever.
+
 Bonus points:
 
 ```sh
+just           # lists all available recipes
 just present   # the slide deck should take over your terminal (q to quit)
 just book      # serves the book at http://localhost:3000
 ```
@@ -112,4 +141,4 @@ Open an issue: https://github.com/alycda/ffi-playground/issues. Do it before
 the session rather than during it — a broken environment is much cheaper to
 fix the day before.
 
-See you at step 0.
+See you at step 1.
