@@ -52,6 +52,7 @@ echo "Required toolchain:"
 check_required "rustc"    "rustc"    "nix shell provides it: direnv allow (no nix: https://rustup.rs)"
 check_required "cargo"    "cargo"    "nix shell provides it: direnv allow (no nix: comes with rustup)"
 check_required "cbindgen" "cbindgen" "nix shell provides it: direnv allow (no nix: cargo install cbindgen)"
+check_required "git"      "git"      "https://git-scm.com/downloads (Xcode CLT on macOS: xcode-select --install)"
 
 # C compiler: accept cc, clang, or gcc.
 c_compiler=""
@@ -93,7 +94,17 @@ tracks_ready=0
 
 echo
 echo "Optional language tracks (pick ONE for Exercise 3):"
-if check_optional "Swift"   "swiftc"  "run: just setup-swift"; then tracks_ready=$((tracks_ready + 1)); fi
+# `swiftc --version` instead of `command -v swiftc`: /usr/bin/swiftc is the
+# same OS-image xcrun stub as /usr/bin/java — present even without the CLT,
+# runnable only once a real toolchain is installed.
+if command -v swiftc >/dev/null 2>&1 && swiftc --version >/dev/null 2>&1; then
+  printf ' %s %-12s ready\n' "$PASS" "Swift"
+  tracks_ready=$((tracks_ready + 1))
+elif command -v swiftc >/dev/null 2>&1; then
+  printf ' %s %-12s swiftc found, not runnable %s(macOS: install the CLT — run: just setup-swift)%s\n' "$SKIP" "Swift" "$DIM" "$NC"
+else
+  printf ' %s %-12s not installed %s(only needed for this track — run: just setup-swift)%s\n' "$SKIP" "Swift" "$DIM" "$NC"
+fi
 # `java -version` instead of `command -v java`: macOS ships a /usr/bin/java
 # stub that exists but exits 1 ("Unable to locate a Java Runtime") until a
 # real JDK is linked — the keg-only case setup-kotlin's symlink hint covers.
@@ -105,9 +116,19 @@ elif command -v kotlinc >/dev/null 2>&1; then
 else
   printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — run: just setup-kotlin)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
 fi
-if command -v python3 >/dev/null 2>&1; then
-  if python3 -c 'import cffi' 2>/dev/null; then
-    printf ' %s %-12s ready (cffi installed)\n' "$PASS" "Python"
+# Prefer the repo-local venv even when it isn't activated: nix-shell prepends
+# its own python3 to the inherited PATH, shadowing an activated .venv — the
+# probe must not turn a completed `just setup-python` into a false "not ready".
+py=python3
+venv_py="$(dirname "$0")/../.venv/bin/python"
+[ -x "$venv_py" ] && py="$venv_py"
+if command -v "$py" >/dev/null 2>&1; then
+  if "$py" -c 'import cffi' 2>/dev/null; then
+    if [ "$py" = "$venv_py" ] && [ -z "${VIRTUAL_ENV:-}" ]; then
+      printf ' %s %-12s ready %s(cffi in .venv — activate: source .venv/bin/activate)%s\n' "$PASS" "Python" "$DIM" "$NC"
+    else
+      printf ' %s %-12s ready (cffi installed)\n' "$PASS" "Python"
+    fi
     tracks_ready=$((tracks_ready + 1))
   else
     printf ' %s %-12s python3 found, cffi missing %s(run: just setup-python, then: source .venv/bin/activate)%s\n' "$SKIP" "Python" "$DIM" "$NC"

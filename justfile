@@ -7,7 +7,7 @@ export USER := shell("whoami")
 _default:
     @just --list
 
-# verify the required toolchain and report optional language tracks
+# verify required toolchain + optional tracks (always exits 0; CI: run scripts/self-check.sh)
 check:
     -./scripts/self-check.sh
 
@@ -20,10 +20,13 @@ setup-python:
     ./.venv/bin/python -m pip install --upgrade pip cffi
     @echo "Done. Activate with: source .venv/bin/activate — then re-run: just check"
 
+# Run test, not `command -v`: the OS-image xcrun stub at /usr/bin/swiftc
+# exists even without the CLT.
+
 # Swift track: toolchain via Xcode CLT
 [macos]
 setup-swift:
-    @command -v swiftc >/dev/null && echo "swiftc already installed" || xcode-select --install
+    @swiftc --version >/dev/null 2>&1 && echo "swiftc already installed" || xcode-select --install
 
 # Swift track: no unattended installer on Linux — points at swift.org
 [linux]
@@ -44,9 +47,10 @@ setup-kotlin:
     @echo "Recommended: sdkman — https://sdkman.io/install then:"
     @echo "  sdk install java 17-tem && sdk install kotlin"
 
-# Dart track: SDK via the official brew tap. Homebrew ≥6 refuses formulae
-# from untrusted third-party taps; `-` keeps older brews (no `trust`
-# subcommand) working.
+# Homebrew ≥6 refuses formulae from untrusted third-party taps, hence the
+# `brew trust`; its `-` prefix keeps older brews (no trust subcommand) working.
+
+# Dart track: SDK via the official brew tap
 [macos]
 setup-dart:
     brew tap dart-lang/dart

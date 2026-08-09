@@ -118,7 +118,7 @@ just check
 ```
 
 It verifies the required toolchain (Rust, C compiler + linker, `cbindgen`,
-git) — including actually compiling a C object, since a broken SDK path can
+git) — including compiling and linking a real C executable, since a broken SDK path can
 hide behind an installed compiler — and reports which optional language
 tracks are ready. All required rows green = step -1 done; your chosen track
 ready = step 0 done. The other `○` rows can stay grey forever.
