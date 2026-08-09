@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Workshop environment self-check.
 #
-# Verifies the REQUIRED toolchain (Rust + C + git + cbindgen) and reports on
+# Verifies the REQUIRED toolchain (Rust + C + cbindgen) and reports on
 # OPTIONAL language tracks (Swift, Kotlin/JNI, Python/cffi, Dart).
 # Exit code is non-zero only when a REQUIRED tool is missing or broken —
 # pick ONE optional track; you do not need them all.
@@ -52,7 +52,6 @@ echo "Required toolchain:"
 check_required "rustc"    "rustc"    "nix shell provides it: direnv allow (no nix: https://rustup.rs)"
 check_required "cargo"    "cargo"    "nix shell provides it: direnv allow (no nix: comes with rustup)"
 check_required "cbindgen" "cbindgen" "nix shell provides it: direnv allow (no nix: cargo install cbindgen)"
-check_required "git"      "git"      "https://git-scm.com/downloads (Xcode CLT on macOS: xcode-select --install)"
 
 # C compiler: accept cc, clang, or gcc.
 c_compiler=""

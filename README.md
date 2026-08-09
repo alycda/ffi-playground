@@ -117,8 +117,8 @@ hand-rolled environment):
 just check
 ```
 
-It verifies the required toolchain (Rust, C compiler + linker, `cbindgen`,
-git) — including compiling and linking a real C executable, since a broken SDK path can
+It verifies the required toolchain (Rust, C compiler + linker, `cbindgen`) —
+including compiling and linking a real C executable, since a broken SDK path can
 hide behind an installed compiler — and reports which optional language
 tracks are ready. All required rows green = step -1 done; your chosen track
 ready = step 0 done. The other `○` rows can stay grey forever.
