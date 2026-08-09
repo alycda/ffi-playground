@@ -1,0 +1,135 @@
+# Verifier — thin caller over verify/verify.sh.
+#
+# The script is the seam: CI calls it, the justfile will call it, and the
+# future CLI replaces it behind the same argv interface. This workflow only
+# provisions toolchains and fans out over what `verify.sh discover` reports,
+# so it is branch-agnostic: on a branch with no step*/ dirs every job skips
+# and the run is trivially green; merged into steps/solutions/any work
+# branch, it verifies what's there.
+#
+# Toolchain pins (kotlinc release zip, JNA version) are inherited from the
+# workshop repo's battle-tested ci.yml.
+
+name: Verify
+
+on:
+  push:
+  workflow_dispatch: {}
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  discover:
+    name: discover step dirs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      crates: ${{ steps.d.outputs.crates }}
+      python: ${{ steps.d.outputs.python }}
+      kotlin: ${{ steps.d.outputs.kotlin }}
+      swift: ${{ steps.d.outputs.swift }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: d
+        run: |
+          found=$(verify/verify.sh discover)
+          echo "discovered: $found"
+          echo "crates=$(echo "$found" | jq -c .crates)" >> "$GITHUB_OUTPUT"
+          echo "python=$(echo "$found" | jq -c .python)" >> "$GITHUB_OUTPUT"
+          echo "kotlin=$(echo "$found" | jq -c .kotlin)" >> "$GITHUB_OUTPUT"
+          echo "swift=$(echo "$found" | jq -c .swift)" >> "$GITHUB_OUTPUT"
+
+  crates:
+    name: crate ${{ matrix.dir }} / ${{ matrix.os }}
+    needs: discover
+    if: needs.discover.outputs.crates != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.discover.outputs.crates) }}
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.dir }}
+      - run: verify/verify.sh crate "${{ matrix.dir }}"
+
+  python:
+    name: python ${{ matrix.dir }} / ${{ matrix.os }}
+    needs: discover
+    if: needs.discover.outputs.python != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.discover.outputs.python) }}
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.dir }}
+      - run: verify/verify.sh python "${{ matrix.dir }}"
+
+  kotlin:
+    name: kotlin ${{ matrix.dir }} / ubuntu
+    needs: discover
+    if: needs.discover.outputs.kotlin != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.discover.outputs.kotlin) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KOTLIN_VERSION: 2.0.21
+      JNA_VERSION: 5.14.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.dir }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # Pinned compiler zip over snap (can't pin) or sdkman (extra layer):
+      # self-contained dist that only needs the JVM above.
+      - name: Install kotlinc (pinned release zip)
+        run: |
+          curl -fsSL -o /tmp/kotlin-compiler.zip \
+            "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip"
+          unzip -q /tmp/kotlin-compiler.zip -d "$HOME/kotlin"
+          echo "$HOME/kotlin/kotlinc/bin" >> "$GITHUB_PATH"
+          "$HOME/kotlin/kotlinc/bin/kotlinc" -version
+      - run: verify/verify.sh kotlin "${{ matrix.dir }}"
+
+  swift:
+    name: swift ${{ matrix.dir }} / macos
+    needs: discover
+    if: needs.discover.outputs.swift != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.discover.outputs.swift) }}
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.dir }}
+      - run: verify/verify.sh swift "${{ matrix.dir }}"
