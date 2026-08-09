@@ -45,5 +45,21 @@ This runs `scripts/self-check.sh`, which verifies every required tool *and*
 compiles and links a real C executable before declaring your machine ready. Red
 rows come with the fix command inline.
 
-Once the required rows are green, step -1 is done. The `○` rows belong to
-the next step.
+## Pick a language track (still step -1)
+
+Exercise 3 calls your Rust library from a higher-level language. Pick
+**one** — you don't need them all:
+
+```sh
+just setup-python   # repo-local venv with cffi
+just setup-swift    # Swift    (installer on macOS; pointers on Linux)
+just setup-kotlin   # Kotlin/JNI (JDK 17+ + kotlinc)
+just setup-dart     # Dart
+```
+
+Then re-run `just check` until your track's row is green. The other `○`
+rows can stay grey forever.
+
+Once the required rows *and* your chosen track are green, step -1 is done —
+your machine can run the workshop. [Step 0](./step0.md) is where you prove
+it: your first cdylib.
