@@ -1,0 +1,11 @@
+[package]
+name = "ffi-playground"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# Step 0: Minimal Rust library
+# - cdylib: Produces a dynamic library (.dylib/.so/.dll) for FFI
+# - rlib: Rust library for tests and Rust consumers
