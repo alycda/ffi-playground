@@ -8,8 +8,7 @@ pkgs.mkShell {
     # already provides the C compiler and linker
     rustc cargo rust-cbindgen
     # safety net: python3 for the Python track; git so pure/minimal shells
-    # (and jj colocated clones) get a current git without verifying it —
-    # anyone running this already cloned the repo
+    # (and jj colocated clones) get a current git (no verification needed)
     python3 git
   ];
 }
