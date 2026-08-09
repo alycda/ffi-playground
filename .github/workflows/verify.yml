@@ -7,14 +7,21 @@
 # and the run is trivially green; merged into steps/solutions/any work
 # branch, it verifies what's there.
 #
-# Toolchain pins (kotlinc release zip, JNA version) are inherited from the
-# workshop repo's battle-tested ci.yml.
+# Toolchain pins (kotlinc release zip, JNA version + checksum) are inherited
+# from the private development repo (alycda/aoc-ffi-workshop) ci.yml.
 
 name: Verify
 
 on:
   push:
+  pull_request:
   workflow_dispatch: {}
+
+# Least privilege: this workflow only reads the repo and runs tests. It also
+# executes externally-fetched toolchains (kotlinc, JNA) and repo-controlled
+# shell, so the token it hands that chain is read-only.
+permissions:
+  contents: read
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -35,6 +42,10 @@ jobs:
       swift: ${{ steps.d.outputs.swift }}
     steps:
       - uses: actions/checkout@v4
+      # The seam's own classification logic is load-bearing and otherwise only
+      # exercised against whatever steps happen to exist — test it directly.
+      - name: Self-test the verifier's classification
+        run: verify/tests/discover_test.sh
       - id: d
         run: |
           found=$(verify/verify.sh discover)
@@ -61,7 +72,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ matrix.dir }}
-      - run: verify/verify.sh crate "${{ matrix.dir }}"
+      # matrix.dir reaches the shell via env, never textual interpolation into
+      # the run script — a crafted step-dir name can't inject commands.
+      - run: verify/verify.sh crate "$DIR"
+        env:
+          DIR: ${{ matrix.dir }}
 
   python:
     name: python ${{ matrix.dir }} / ${{ matrix.os }}
@@ -80,7 +95,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ matrix.dir }}
-      - run: verify/verify.sh python "${{ matrix.dir }}"
+      - run: verify/verify.sh python "$DIR"
+        env:
+          DIR: ${{ matrix.dir }}
 
   kotlin:
     name: kotlin ${{ matrix.dir }} / ubuntu
@@ -94,6 +111,7 @@ jobs:
     timeout-minutes: 30
     env:
       KOTLIN_VERSION: 2.0.21
+      KOTLIN_SHA256: 0352c0a45bd22f80f6b26e485cd04da8047baa5de54865281fb9f89a4a7bcf2a
       JNA_VERSION: 5.14.0
     steps:
       - uses: actions/checkout@v4
@@ -111,10 +129,33 @@ jobs:
         run: |
           curl -fsSL -o /tmp/kotlin-compiler.zip \
             "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip"
+          # A replaced release asset can't slip through: verify before we run it.
+          echo "${KOTLIN_SHA256}  /tmp/kotlin-compiler.zip" | sha256sum -c -
           unzip -q /tmp/kotlin-compiler.zip -d "$HOME/kotlin"
           echo "$HOME/kotlin/kotlinc/bin" >> "$GITHUB_PATH"
           "$HOME/kotlin/kotlinc/bin/kotlinc" -version
-      - run: verify/verify.sh kotlin "${{ matrix.dir }}"
+      - run: verify/verify.sh kotlin "$DIR"
+        env:
+          DIR: ${{ matrix.dir }}
+
+  book:
+    name: book builds (no broken includes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      # mdbook exits 0 even on a broken {{#include}} (ERROR to stderr, HTML still
+      # written), and pages.yml only builds on main — so without this, a broken
+      # include (e.g. a renamed step0-setup/) would merge silently. Fail on ERROR.
+      - name: mdbook build, failing on any ERROR
+        run: |
+          cargo install mdbook --version ^0.4 --locked
+          cd book
+          mdbook build 2>build.log || { cat build.log; exit 1; }
+          if grep -qE '^[[:space:]]*ERROR' build.log; then
+            echo "mdbook emitted ERROR (broken include or missing page):"; cat build.log; exit 1
+          fi
 
   swift:
     name: swift ${{ matrix.dir }} / macos
@@ -132,4 +173,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ matrix.dir }}
-      - run: verify/verify.sh swift "${{ matrix.dir }}"
+      - run: verify/verify.sh swift "$DIR"
+        env:
+          DIR: ${{ matrix.dir }}

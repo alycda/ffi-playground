@@ -26,9 +26,42 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 JNA_VERSION="${JNA_VERSION:-5.14.0}"
+# Pinned by content, not just version: a re-published jar can't slip through.
+JNA_SHA256="${JNA_SHA256:-34ed1e1f27fa896bca50dbc4e99cf3732967cec387a7a0d5e3486c09673fe8c6}"
 
 crate_name() { # <dir> → package name with dashes underscored
   sed -n 's/^name *= *"\(.*\)"/\1/p' "$1/Cargo.toml" | head -1 | tr '-' '_'
+}
+
+sha256_check() { # <file> <expected> — portable across macOS (shasum) and Linux (sha256sum)
+  local got
+  if command -v sha256sum >/dev/null; then got=$(sha256sum "$1" | awk '{print $1}')
+  elif command -v shasum >/dev/null; then got=$(shasum -a 256 "$1" | awk '{print $1}')
+  else echo "verify.sh: no sha256 tool to verify $1" >&2; return 1; fi
+  [ "$got" = "$2" ] || { echo "verify.sh: checksum mismatch for $1 (got $got, want $2)" >&2; return 1; }
+}
+
+# Classify one step dir by shape — the single source of truth both discover()
+# and verify_all() consume, so the two can never disagree. Echoes:
+#   crate                        plain crate → `cargo test`
+#   uniffi:<lang>[,<lang>...]    uniffi step + the tracks it ships tests for
+# A dir with the bindgen binary but NO tests/<lang>/ would land in no bucket and
+# go silently unverified — the opposite of "verified by existing" — so it is a
+# hard error, not a skip.
+classify_step() { # <dir> → prints kind; returns 1 (with message) if malformed
+  local d=$1 langs=()
+  if [ -f "$d/src/bin/uniffi-bindgen.rs" ]; then
+    [ -d "$d/tests/python" ] && langs+=(python)
+    [ -d "$d/tests/kotlin" ] && langs+=(kotlin)
+    [ -d "$d/tests/swift" ]  && langs+=(swift)
+    if [ "${#langs[@]}" -eq 0 ]; then
+      echo "verify.sh: $d ships src/bin/uniffi-bindgen.rs but no tests/{python,kotlin,swift}/ — it would be silently unverified" >&2
+      return 1
+    fi
+    local IFS=,; echo "uniffi:${langs[*]}"
+  else
+    echo "crate"
+  fi
 }
 
 libfile() { # <dir> → platform library filename
@@ -47,17 +80,19 @@ json_array() {
 }
 
 discover() {
-  local crates=() python=() kotlin=() swift=() d
+  local crates=() python=() kotlin=() swift=() d kind
   for d in step*/; do
     d="${d%/}"
     [ -f "$d/Cargo.toml" ] || continue
-    if [ -f "$d/src/bin/uniffi-bindgen.rs" ]; then
-      [ -d "$d/tests/python" ] && python+=("$d")
-      [ -d "$d/tests/kotlin" ] && kotlin+=("$d")
-      [ -d "$d/tests/swift" ]  && swift+=("$d")
-    else
-      crates+=("$d")
-    fi
+    kind=$(classify_step "$d")   # a malformed step aborts discover via set -e
+    case "$kind" in
+      crate) crates+=("$d") ;;
+      uniffi:*)
+        case "$kind" in *python*) python+=("$d") ;; esac
+        case "$kind" in *kotlin*) kotlin+=("$d") ;; esac
+        case "$kind" in *swift*)  swift+=("$d")  ;; esac
+        ;;
+    esac
   done
   printf '{"crates":%s,"python":%s,"kotlin":%s,"swift":%s}\n' \
     "$(json_array ${crates[@]+"${crates[@]}"})" \
@@ -98,6 +133,7 @@ verify_kotlin() { # <dir>
   (cd "$1/bindings/kotlin" &&
     { [ -f jna.jar ] || curl -fsSL -o jna.jar \
         "https://repo1.maven.org/maven2/net/java/dev/jna/jna/${JNA_VERSION}/jna-${JNA_VERSION}.jar"; } &&
+    sha256_check jna.jar "$JNA_SHA256" &&
     kotlinc -classpath jna.jar \
       "uniffi/${name}/${name}.kt" \
       -include-runtime -d "${name}.jar" &&
@@ -122,23 +158,33 @@ verify_swift() { # <dir>
     DYLD_LIBRARY_PATH=. ./test_runner)
 }
 
+# Run a track only if its toolchain is present; otherwise record an explicit
+# skip. A green "verify: done" must never hide a track that never ran.
+run_track() { # <lang> <tool> <dir> <verify-fn>  (appends to caller's `skipped`)
+  if command -v "$2" >/dev/null; then "$4" "$3"
+  else echo "SKIP $1: $2 not on PATH ($3)" >&2; skipped+=("$3:$1"); fi
+}
+
 verify_all() {
-  local found
-  found=$(discover)
-  echo "discovered: $found"
-  local d
+  echo "discovered: $(discover)"
+  local d kind skipped=()
   for d in step*/; do
     d="${d%/}"
     [ -f "$d/Cargo.toml" ] || continue
-    if [ -f "$d/src/bin/uniffi-bindgen.rs" ]; then
-      [ -d "$d/tests/python" ] && verify_python "$d"
-      [ -d "$d/tests/kotlin" ] && command -v kotlinc >/dev/null && verify_kotlin "$d"
-      [ -d "$d/tests/swift" ]  && command -v swiftc  >/dev/null && verify_swift "$d"
-    else
+    kind=$(classify_step "$d")   # shares discover()'s classification exactly
+    if [ "$kind" = crate ]; then
       verify_crate "$d"
+      continue
     fi
+    case "$kind" in *python*) run_track python python3 "$d" verify_python ;; esac
+    case "$kind" in *kotlin*) run_track kotlin kotlinc "$d" verify_kotlin ;; esac
+    case "$kind" in *swift*)  run_track swift  swiftc  "$d" verify_swift  ;; esac
   done
-  echo "verify: done"
+  if [ "${#skipped[@]}" -gt 0 ]; then
+    echo "verify: done — SKIPPED (toolchain absent): ${skipped[*]}"
+  else
+    echo "verify: done"
+  fi
 }
 
 case "${1:-}" in
