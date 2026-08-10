@@ -20,10 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # prebuilt binaries: `cargo install` here compiled both from source
+      # (~5-10 min per push); install-action downloads releases in seconds
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook,just
+
       - name: "mdbook"
-        run: | 
-          cargo install mdbook just
-          just _build-book-gha
+        run: just _build-book-gha
       
       # OPTIONAL: Replace the above with one of these for your project:
       #
