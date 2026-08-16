@@ -56,7 +56,10 @@ all for you.
    [VS Code](https://code.visualstudio.com) with the
    [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 2. Open this repo in VS Code and choose **"Reopen in Container"** when
-   prompted. VS Code will ask for an `ANTHROPIC_API_KEY` — it's declared as a
+   prompted. There is more than one container to choose from, so VS Code will
+   show a picker — **"FFI playground (git)"** is the standard choice;
+   **"(jj)"** is the identical container with [Jujutsu](https://jj-vcs.github.io)
+   added for those who prefer it. VS Code will ask for an `ANTHROPIC_API_KEY` — it's declared as a
    secret in [`.devcontainer/devcontainer.json`](./.devcontainer), and nothing
    in the workshop reads it. Leave it blank unless you want Claude Code in the
    container.
