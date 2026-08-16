@@ -33,8 +33,10 @@ nix-channel --update
 # Install home-manager
 nix-shell '<home-manager>' -A install
 
-# Apply the configuration from this repo
-home-manager switch -b backup -f "${SCRIPT_DIR}/home.nix"
+# Apply the configuration from this repo. Variant devcontainers (jj, kotlin,
+# flutter) set WORKSHOP_HOME_NIX via containerEnv to their own home.nix, which
+# imports the shared one below and adds packages.
+home-manager switch -b backup -f "${WORKSHOP_HOME_NIX:-${SCRIPT_DIR}/home.nix}"
 
 # Allow direnv for this template repo (if it has .envrc)
 if [ -f "${WORKSPACE_DIR}/.envrc" ]; then

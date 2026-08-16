@@ -1,4 +1,8 @@
+// Base variant. The sibling variants (jj, kotlin, flutter) are copies of this
+// file plus a name and a WORKSHOP_HOME_NIX override — devcontainer.json has no
+// "extends", so edits here need mirroring there.
 {
+    "name": "FFI playground (git)",
     "image": "debian:bookworm-slim",
     "mounts": [
         "source=claude-auth,target=/root/.claude,type=volume"
