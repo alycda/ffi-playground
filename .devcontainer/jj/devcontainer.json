@@ -32,7 +32,7 @@
                 "visualjj.visualjj"
             ],
             "settings": {
-                "chat.agent.enabled": false,
+                "chat.disableAIFeatures": true,
                 "editor.wordWrap": "on",
                 "git.autofetch": true,
                 "git.confirmSync": false,
