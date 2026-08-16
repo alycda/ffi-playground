@@ -6,7 +6,7 @@ language you'll pair with Rust. Nothing else happens until both work.
 
 Everything the workshop requires — the Rust/C toolchain (`rustc`, `cargo`,
 `cbindgen`, a C compiler) plus the presenter tools (`just`, `presenterm`,
-`mdbook`, `cheat`, `asciinema`, `tmux`) — is declared in one file:
+`mdbook`, `cheat`, `tmux`) — is declared in one file:
 [`shell.nix`](./shell.nix). How you get those tools onto your machine is up
 to you. Pick one:
 
@@ -81,7 +81,6 @@ given you:
 | [presenterm](https://github.com/mfontanini/presenterm) | the slide deck, in your terminal | `cargo install presenterm`, brew |
 | [mdbook](https://rust-lang.github.io/mdBook/) | the workshop book | `cargo install mdbook`, brew |
 | [cheat](https://github.com/cheat/cheat) | cheatsheets | brew, go install, release binaries |
-| [asciinema](https://asciinema.org) | terminal session recordings | `cargo install asciinema`, brew, pipx |
 | [tmux](https://github.com/tmux/tmux) | speaker-notes split layout | brew, apt, … |
 
 You won't get the tool set for free — that's the part `shell.nix` hands you,

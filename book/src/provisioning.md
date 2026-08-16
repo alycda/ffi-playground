@@ -3,7 +3,7 @@
 Before anything else, your machine has to be able to run the workshop.
 Everything required — the Rust/C toolchain (`rustc`, `cargo`, `cbindgen`, a
 C compiler) and the presenter tools (`just`, `presenterm`, `mdbook`, `cheat`,
-`asciinema`, `tmux`) — is declared in a single file at the repo root:
+`tmux`) — is declared in a single file at the repo root:
 `shell.nix`. How those tools get onto your machine is your choice; the
 [repo README](https://github.com/alycda/ffi-playground#readme) walks each
 path in detail. In brief:
