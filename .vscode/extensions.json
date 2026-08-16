@@ -1,9 +1,6 @@
 {
     "recommendations": [
-        "me-dutour-mathieu.vscode-github-actions"
     ],
     "unwantedRecommendations": [
-        // doesn't work inside devcontainer on local
-        "github.vscode-github-actions"
     ]
 }
