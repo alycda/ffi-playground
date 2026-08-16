@@ -65,6 +65,7 @@ setup-dart:
 [linux]
 setup-dart:
     @echo "Install the Dart SDK (3.0+): https://dart.dev/get-dart"
+    @echo "Or skip that: reopen the repo in the 'Flutter/Dart track' devcontainer."
 
 # list the cheatsheets in .cheat
 cheats:
