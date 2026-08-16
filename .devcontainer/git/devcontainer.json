@@ -24,6 +24,7 @@
                 "anthropic.claude-code",
                 "jnoortheen.nix-ide",
                 "mk12.better-git-line-blame",
+                "rust-lang.rust-analyzer",
                 "skellock.just"
             ],
             "settings": {
