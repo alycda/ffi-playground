@@ -1,5 +1,6 @@
 ---
 syntax: bash
+tags: [ install ]
 ---
 # this repo: enter the workshop toolchain
 nix-shell                      # or `direnv allow` once, then it's automatic
