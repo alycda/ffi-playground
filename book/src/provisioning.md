@@ -1,10 +1,11 @@
 # Step -1: Machine Provisioning
 
 Before anything else, your machine has to be able to run the workshop.
-Everything required — the Rust/C toolchain (`rustc`, `cargo`, `cbindgen`, a
-C compiler) and the presenter tools (`just`, `presenterm`, `mdbook`, `cheat`,
-`tmux`) — is declared in a single file at the repo root:
-`shell.nix`. How those tools get onto your machine is your choice; the
+Everything lives in a single file at the repo root: `shell.nix` — but only
+five tools are *required*: `rustc`, `cargo`, `cbindgen`, a C compiler, and
+`just`. The rest (`cheat`, `presenterm`, `mdbook`, `tmux`) is presenter
+workflow, shared in case it's useful and safe to ignore. How the required
+five get onto your machine is your choice; the
 [repo README](https://github.com/alycda/ffi-playground#readme) walks each
 path in detail. In brief:
 

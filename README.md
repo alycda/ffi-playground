@@ -4,11 +4,17 @@ Before the workshop can start, your machine needs to be able to run it.
 That's all this is: **step -1** provisions the machine, **step 0** picks the
 language you'll pair with Rust. Nothing else happens until both work.
 
-Everything the workshop requires — the Rust/C toolchain (`rustc`, `cargo`,
-`cbindgen`, a C compiler) plus the presenter tools (`just`, `presenterm`,
-`mdbook`, `cheat`, `tmux`) — is declared in one file:
-[`shell.nix`](./shell.nix). How you get those tools onto your machine is up
-to you. Pick one:
+One file declares the tools: [`shell.nix`](./shell.nix). But not all of it is
+required — the workshop needs five. The rest is my own workflow, put in
+the box in case it's useful to you, and safe to ignore if it isn't.
+
+| | Tools | Do you need it? |
+|---|---|---|
+| **Required** | `rustc`, `cargo`, `cbindgen`, a C compiler, `just` | Yes. This is the whole contract — `just check` verifies the first four, and `just` proves itself by running it. |
+| **Recommended** | `cheat` | Cheatsheets for the FFI patterns we'll hit — `just cheats`. |
+| **Opt-in** | `presenterm`, `mdbook`, `tmux` | Only to run my deck and book *locally*. Both are published, so you never have to. |
+
+How you get the required five onto your machine is up to you. Pick one:
 
 ## Option 1: macOS / Linux — Nix
 
@@ -69,19 +75,24 @@ all for you.
 
 No Nix. No Docker. Just you, your package manager, and consequences.
 
-Install each tool yourself — this is exactly what `shell.nix` would have
-given you:
+Install each tool yourself. **Required — install all five:**
 
 | Tool | What it's for | Where to get it |
 |------|---------------|-----------------|
 | [rustc + cargo](https://rustup.rs) | the workshop's core: building Rust FFI libraries | rustup |
 | [cbindgen](https://github.com/mozilla/cbindgen) | generating C headers from Rust | `cargo install cbindgen` |
 | C compiler | compiling/linking against your Rust libraries | Xcode CLT (`xcode-select --install`), apt/dnf `gcc` |
-| [just](https://github.com/casey/just) | task runner (`just <recipe>`) | `cargo install just`, brew, apt, … |
-| [presenterm](https://github.com/mfontanini/presenterm) | the slide deck, in your terminal | `cargo install presenterm`, brew |
-| [mdbook](https://rust-lang.github.io/mdBook/) | the workshop book | `cargo install mdbook`, brew |
-| [cheat](https://github.com/cheat/cheat) | cheatsheets | brew, go install, release binaries |
-| [tmux](https://github.com/tmux/tmux) | speaker-notes split layout | brew, apt, … |
+| [just](https://github.com/casey/just) | task runner — `just check`, `just setup-<track>` | `cargo install just`, brew, apt, … |
+
+**Everything else is my workflow, not your homework.** Skip the whole table
+and the workshop still works:
+
+| Tool | What it's for | Where to get it |
+|------|---------------|-----------------|
+| [cheat](https://github.com/cheat/cheat) | cheatsheets for the FFI patterns (`just cheats`) — recommended | brew, go install, release binaries |
+| [presenterm](https://github.com/mfontanini/presenterm) | my slide deck, in your terminal (`just present`) | `cargo install presenterm`, brew |
+| [mdbook](https://rust-lang.github.io/mdBook/) | the workshop book, served locally (`just book`) | `cargo install mdbook`, brew |
+| [tmux](https://github.com/tmux/tmux) | deck + speaker notes side by side — a presenter rig, not an attendee one | brew, apt, … |
 
 You won't get the tool set for free — that's the part `shell.nix` hands you,
 and here it's on you. Versions are on you either way: `shell.nix` is
@@ -129,6 +140,10 @@ just           # lists all available recipes
 just present   # the slide deck should take over your terminal (q to quit)
 just book      # serves the book at http://localhost:3000
 ```
+
+`present` and `book` need the opt-in tools above (`presenterm`, `mdbook`), so
+they're there for you if you're inside `nix-shell` or the container, and
+skippable if you're not — the deck and book are published either way.
 
 `just book` only pops a browser open by itself on a desktop macOS or Linux
 host. In WSL2 and in the container there's no desktop opener to call, so open
