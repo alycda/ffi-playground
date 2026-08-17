@@ -58,6 +58,10 @@ Then fill the three holes the scaffold names (`Day`'s shape and its `FromStr`, t
 parts, and the tests — paste the statement's example input and drop the `#[ignore]`), add
 a menu row above, and run `just days verify`.
 
+Commit `days/Cargo.lock` along with the new day: the scaffold updates it (a new member has
+to be in the lockfile before anything runs `--locked`, which verify and CI both do), and
+CI checks out whatever you push.
+
 Nothing needs registering. `days/Cargo.toml` is a virtual manifest with
 `members = ["*"]`, so cargo, rust-analyzer, and CI all pick a new day up by its existing
 rather than by its being listed anywhere. The flip side of that glob: a directory in here

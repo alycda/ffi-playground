@@ -38,4 +38,9 @@ new day:
         sed -e "s/day-template/{{day}}/g" -e "s/day_template/${ident}/g" "$f" > "$f.new"
         mv "$f.new" "$f"
     done
-    echo "created days/{{day}} — now: just test {{day}}"
+    # The new member has to appear in days/Cargo.lock before anything runs
+    # --locked, which verify and CI both do. Without this the first command
+    # after scaffolding fails on the lockfile rather than on the puzzle.
+    # `cargo metadata` is the cheapest thing that resolves the workspace.
+    cargo metadata --format-version 1 >/dev/null
+    echo "created days/{{day}} — now: just test {{day}} (and commit Cargo.lock)"
