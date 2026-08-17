@@ -10,6 +10,7 @@
   home.packages = with pkgs; [
     helix
     claude-code
+    less  # bookworm-slim ships no pager; jj and git both expect one
   ];
 
   # preserve claude authentication and history (possibly redundant with devcontainer volume mount)
@@ -40,7 +41,7 @@
   home.sessionVariables = {
     EDITOR = "hx";
     VISUAL = "code";
-    CHEAT_CONFIG_PATH = toString ./cheat/conf.yml;
+    # cheat config comes from shell.nix (CHEAT_CONFIG_PATH via mkShell)
   };
 
   home.stateVersion = "24.05";

@@ -91,9 +91,10 @@ book:
 build-book:
     mdbook build
 
-# devcontainer only: rebuild the home-manager profile from .devcontainer/home.nix
+# devcontainer only: rebuild the home-manager profile (WORKSHOP_HOME_NIX is
+# set by the variant devcontainers so their extra packages survive a rebuild)
 _rebuild:
-    home-manager switch -b backup -f .devcontainer/home.nix
+    home-manager switch -b backup -f "${WORKSHOP_HOME_NIX:-.devcontainer/home.nix}"
 
 # CI only: called by .github/workflows/pages.yml. Moves the build output to
 # _site for actions/upload-pages-artifact, so don't run it by hand.
