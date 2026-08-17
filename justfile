@@ -35,6 +35,8 @@ setup-swift:
 [linux]
 setup-swift:
     @echo "Install the Swift toolchain from https://www.swift.org/install/"
+    @echo "Or (experimental): reopen the repo in the 'Swift track' devcontainer —"
+    @echo "  caveats in .devcontainer/swift/README.md"
 
 # Kotlin/JNI track: JDK + kotlinc via brew (keg-only JDK needs the symlink)
 [macos]
