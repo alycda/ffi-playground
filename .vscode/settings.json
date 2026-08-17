@@ -1,0 +1,127 @@
+// Excludes for a repo that carries eight toolchains at once. Three separate
+// knobs, because they answer three different questions:
+//
+//   files.exclude       what the Explorer shows      (inherited by search)
+//   search.exclude      what ripgrep walks           (adds to files.exclude)
+//   files.watcherExclude  what the fs watcher tracks (independent; CPU/battery)
+//
+// search.useIgnoreFiles is on by default, so .gitignore already keeps most of
+// this out of search results. The watcher does NOT read .gitignore — that list
+// has to be spelled out, and it is where the real performance win lives.
+{
+  "files.exclude": {
+    // --- VCS -------------------------------------------------------------
+    // Colocated jj + git. **/.git is excluded by VS Code's defaults already.
+    "**/.jj": true,
+
+    // --- Nix -------------------------------------------------------------
+    "result": true,
+    "result-*": true,
+    "**/.direnv": true,
+
+    // --- Rust ------------------------------------------------------------
+    // Hidden from the Explorer only; rust-analyzer is unaffected by this.
+    "**/target": true,
+    "**/*.rs.bk": true,
+
+    // --- C ---------------------------------------------------------------
+    // Object files and static archives only. Shared libraries (.so/.dylib/
+    // .dll) stay VISIBLE on purpose: watching libaoc.so appear is the point
+    // of the workshop. They are excluded from search below instead.
+    "**/*.o": true,
+    "**/*.obj": true,
+    "**/*.a": true,
+    "**/*.lib": true,
+    "**/*.pdb": true,
+
+    // --- Python ----------------------------------------------------------
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/*.py[cod]": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/*.egg-info": true,
+
+    // --- Kotlin / Gradle / JNI -------------------------------------------
+    "**/.gradle": true,
+    "**/.kotlin": true,
+    "**/build": true,
+    "**/*.class": true,
+    "**/*.jar": true,
+
+    // --- Swift -----------------------------------------------------------
+    "**/.build": true,
+    "**/DerivedData": true,
+    "**/*.xcuserdatad": true,
+
+    // --- Flutter / Dart ---------------------------------------------------
+    "**/.dart_tool": true,
+    "**/.flutter-plugins": true,
+    "**/.flutter-plugins-dependencies": true,
+    "**/ios/Pods": true,
+    "**/ios/.symlinks": true,
+    "**/linux/flutter/ephemeral": true,
+    "**/macos/Flutter/ephemeral": true,
+    "**/windows/flutter/ephemeral": true,
+
+    // --- Docs / misc ------------------------------------------------------
+    "book/book": true,
+    "**/node_modules": true,
+    "**/.DS_Store": true
+  },
+
+  // Adds to files.exclude — everything above is already out of search.
+  "search.exclude": {
+    // .direnv is a thicket of symlinks into /nix/store. Following them sends
+    // ripgrep off into the whole store; this is the single biggest search win.
+    "**/*.so": true,
+    "**/*.so.*": true,
+    "**/*.dylib": true,
+    "**/*.dll": true,
+    "**/*.out": true,
+
+    // UniFFI output: visible in the Explorer (attendees should read it),
+    // but it should never crowd out hand-written code in search results.
+    "**/bindings/**": true,
+
+    // Lockfiles: keep them tracked and openable, out of grep.
+    "**/Cargo.lock": true,
+    "**/pubspec.lock": true,
+    "**/Package.resolved": true,
+    "**/gradle/wrapper/**": true
+  },
+  "search.followSymlinks": false,
+
+  // Independent of the two above. Untracked churn still costs CPU here —
+  // jj re-snapshots the working copy on every command, and cargo/gradle
+  // rewrite thousands of files per build.
+  "files.watcherExclude": {
+    "**/.jj/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.direnv/**": true,
+    "result/**": true,
+    "**/target/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.gradle/**": true,
+    "**/.kotlin/**": true,
+    "**/build/**": true,
+    "**/.build/**": true,
+    "**/DerivedData/**": true,
+    "**/.dart_tool/**": true,
+    "**/ios/Pods/**": true,
+    "**/bindings/**": true,
+    "**/node_modules/**": true,
+    "book/book/**": true
+  },
+
+  // Same story one layer up: don't let the Rust track index the other seven.
+  "rust-analyzer.files.excludeDirs": [
+    ".direnv",
+    ".jj",
+    ".venv",
+    "book"
+  ]
+}
