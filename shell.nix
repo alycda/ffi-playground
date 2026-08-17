@@ -50,4 +50,9 @@ pkgs.mkShell {
   ];
 
   CHEAT_CONFIG_PATH = cheatConf;
+
+  # nixpkgs ships the std sources separately from rustc, so without this
+  # rust-analyzer logs "can't load standard library" and goto-def/completion
+  # stop at the edge of std — which in an FFI workshop means ffi::CString.
+  RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
 }
