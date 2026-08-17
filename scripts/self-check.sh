@@ -53,6 +53,23 @@ check_required "rustc"    "rustc"    "nix shell provides it: direnv allow (no ni
 check_required "cargo"    "cargo"    "nix shell provides it: direnv allow (no nix: comes with rustup)"
 check_required "cbindgen" "cbindgen" "nix shell provides it: direnv allow (no nix: cargo install cbindgen)"
 
+# The day crates set a hard floor (edition 2024 needs rustc 1.85, resolver "3"
+# needs cargo 1.84 — see days/): merely existing isn't enough, since an old
+# channel's rustc passes the check above and then every cargo command in days/
+# fails at manifest parse. Parse failures here skip silently — a rustc that
+# can't even report a 1.x version was already flagged as broken above.
+if command -v rustc >/dev/null 2>&1; then
+  rust_minor=$(rustc --version 2>/dev/null | sed -nE 's/^rustc 1\.([0-9]+)\..*/\1/p')
+  if [ -n "$rust_minor" ]; then
+    if [ "$rust_minor" -ge 85 ]; then
+      printf ' %s %-10s 1.%s meets the 1.85 floor (edition 2024)\n' "$PASS" "rust floor" "$rust_minor"
+    else
+      printf ' %s %-10s rustc 1.%s is older than 1.85 (edition 2024) — rustup update stable (nix: newer channel)\n' "$FAIL" "rust floor" "$rust_minor"
+      required_failures=$((required_failures + 1))
+    fi
+  fi
+fi
+
 # C compiler: accept cc, clang, or gcc.
 c_compiler=""
 for candidate in cc clang gcc; do
