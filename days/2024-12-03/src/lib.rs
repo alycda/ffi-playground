@@ -1,17 +1,17 @@
 //! Day 3: Mull It Over
 //!
-//! Handles multiplication instructions with enable/disable states
+//! Multiplication instructions buried in corrupted text, some of them
+//! switched off.
 //!
 //! --- Part One ---
 //!
-//! multiply some numbers (that match a valid pattern) and sum the results
+//! Find every well-formed `mul(a,b)`, ignore the corruption around it, and
+//! sum the products.
 //!
 //! --- Part Two ---
 //!
-//! * The do() instruction enables future mul instructions.
-//!     - At the beginning of the program, mul instructions are enabled.
-//! * The don't() instruction disables future mul instructions.
-//!     - Only the most recent do() or don't() instruction applies.
+//! `do()` and `don't()` toggle whether a `mul` counts; the most recent
+//! toggle wins, and multiplication starts enabled.
 
 use std::{marker::PhantomData, num::ParseIntError, str::FromStr};
 

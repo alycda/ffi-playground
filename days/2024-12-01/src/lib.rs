@@ -1,22 +1,16 @@
 //! Day 1: Historian Hysteria
 //!
+//! Two columns of location IDs, one pair per line.
+//!
 //! --- Part One ---
-//! Pair up the smallest number in the left list with the smallest number in the
-//! right list, then the second-smallest left number with the second-smallest
-//! right number, and so on.
 //!
-//! Within each pair, figure out how far apart the two numbers are; you'll need
-//! to add up all of those distances.
+//! Sort each column, pair the two columns off by rank, and sum the absolute
+//! difference of every pair.
 //!
-//! To find the total distance between the left list and the right list, add up
-//! the distances between all of the pairs you found.
+//! --- Part Two ---
 //!
-//! -- Part Two ---
-//!
-//! figure out exactly how often each number from the left list appears in the
-//! right list. Calculate a total similarity score by adding up each number in
-//! the left list after multiplying it by the number of times that number
-//! appears in the right list
+//! Weight each left-hand ID by how many times it occurs in the right column,
+//! and sum `id * occurrences`.
 
 use std::collections::HashMap;
 use std::str::FromStr;
