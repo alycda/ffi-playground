@@ -156,18 +156,12 @@ impl FromStr for Day3<Part2> {
         let input = Span::new(input);
         let mut products = Vec::new();
 
-        println!("Initial input: {:?}", input.fragment());
-
         // Get everything before first don't()
         let (mut current, _initial) =
             match take_until::<_, _, nom::error::Error<Span>>("don't()")(input) {
                 Ok((remainder, initial)) => {
-                    println!("Before first don't(): {:?}", initial.fragment());
-                    println!("Remainder after don't: {:?}", remainder.fragment());
-
                     let (_, initial_products) =
                         Day3::<Part2>::parse_all_mul(initial.fragment()).unwrap();
-                    println!("Initial products: {:?}", initial_products);
                     products.extend(initial_products);
                     (remainder, initial)
                 }
@@ -178,26 +172,19 @@ impl FromStr for Day3<Part2> {
             };
 
         while !current.is_empty() {
-            println!("\nProcessing section starting at: {:?}", current.fragment());
-
             // Skip don't()
             let (after_dont, _) = tag::<_, _, nom::error::Error<Span>>("don't()")(current).unwrap();
-            println!("After don't(): {:?}", after_dont.fragment());
 
             // Find next do()
             match take_until::<_, _, nom::error::Error<Span>>("do()")(after_dont) {
-                Ok((after_do, disabled_section)) => {
-                    println!("Disabled section: {:?}", disabled_section.fragment());
-
+                Ok((after_do, _disabled_section)) => {
                     // Skip do()
                     let (remainder, _) =
                         tag::<_, _, nom::error::Error<Span>>("do()")(after_do).unwrap();
-                    println!("Enabled section: {:?}", remainder.fragment());
 
                     // Process enabled section until next don't()
                     match take_until::<_, _, nom::error::Error<Span>>("don't()")(remainder) {
                         Ok((next_dont, enabled)) => {
-                            println!("Processing until next don't(): {:?}", enabled.fragment());
                             let (_, new_products) =
                                 Day3::<Part2>::parse_all_mul(enabled.fragment()).unwrap();
                             products.extend(new_products);
@@ -205,7 +192,6 @@ impl FromStr for Day3<Part2> {
                         }
                         Err(_) => {
                             // Process until end
-                            println!("Processing until end: {:?}", remainder.fragment());
                             let (_, new_products) =
                                 Day3::<Part2>::parse_all_mul(remainder.fragment()).unwrap();
                             products.extend(new_products);
@@ -213,14 +199,10 @@ impl FromStr for Day3<Part2> {
                         }
                     }
                 }
-                Err(_) => {
-                    println!("No more do() found");
-                    break;
-                }
+                Err(_) => break,
             }
         }
 
-        println!("\nFinal products: {:?}", products);
         Ok(Day3(products, PhantomData))
     }
 }
