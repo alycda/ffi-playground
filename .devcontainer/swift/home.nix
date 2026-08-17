@@ -13,5 +13,16 @@
   # *clang* modules. Without them `import Foundation` does not reach the
   # runtime gotcha below — it fails to compile with
   # `missing required modules: 'CoreFoundation', 'Dispatch'`.
-  home.packages = with pkgs; [ swift swiftPackages.Foundation swiftPackages.Dispatch ];
+  # Both corelibs packages are multi-output: `out` holds the libraries and the
+  # Swift modules, `dev` holds the C headers and the module maps that Swift's
+  # Dispatch and Foundation modules are wrappers around. home.packages takes
+  # the default output, so installing only these two gives you modules that
+  # resolve and then fail to load. The .dev outputs are not optional here.
+  home.packages = with pkgs; [
+    swift
+    swiftPackages.Foundation
+    swiftPackages.Foundation.dev
+    swiftPackages.Dispatch
+    swiftPackages.Dispatch.dev
+  ];
 }
