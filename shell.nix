@@ -37,6 +37,11 @@ pkgs.mkShell {
     # already provides the C compiler and linker. `just` is required too — it
     # is how attendees invoke everything.
     rustc cargo rust-cbindgen just
+    # clippy and rustfmt ship separately from cargo in nixpkgs, so without
+    # them `cargo fmt` / `cargo clippy` are "no such command" in this shell —
+    # and .github/workflows/rust.yml gates on both. A CI check an attendee
+    # cannot run before pushing is a check they only ever meet as a red X.
+    clippy rustfmt
     # recommended: cheatsheets for the FFI patterns (`just cheats`)
     cheat
     # opt-in, presenter-side: running the deck and book locally. Both are

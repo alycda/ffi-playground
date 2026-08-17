@@ -7,6 +7,14 @@ test day:
 run day:
     cd {{day}} && cargo run
 
+# every day at once, exactly what .github/workflows/rust.yml gates on — run
+# this before pushing. The recipes above take one day; CI never does, because
+# `members = ["*"]` means a change to a shared dep breaks days you didn't touch.
+verify:
+    cargo test --workspace --locked
+    cargo fmt --all --check
+    cargo clippy --workspace --all-targets --locked -- -D warnings
+
 # scaffold a new day from _template, e.g. `just new 2022-12-01`
 new day:
     #!/usr/bin/env bash
