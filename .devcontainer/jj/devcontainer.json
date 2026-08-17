@@ -30,6 +30,7 @@
                 "mk12.better-git-line-blame",
                 "mkhl.direnv",
                 "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
                 "skellock.just",
                 "visualjj.visualjj"
             ],
