@@ -11,6 +11,13 @@ run day:
 new day:
     #!/usr/bin/env bash
     set -euo pipefail
+    # Bare YYYY-MM-DD only: {{day}} lands in paths, a sed expression, and a
+    # crate name, so anything else (a trailing slash, say) dies mid-scaffold
+    # and leaves a half-renamed crate that breaks the whole workspace.
+    if [[ ! "{{day}}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+        echo "day must be YYYY-MM-DD (e.g. 2022-12-01), got '{{day}}'" >&2
+        exit 1
+    fi
     if [ -e "{{day}}" ]; then
         echo "days/{{day}} already exists" >&2
         exit 1
