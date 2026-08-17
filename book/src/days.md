@@ -69,6 +69,12 @@ Three files, and only three things to write:
 registering afterwards: membership is a glob, so cargo, rust-analyzer and CI all
 pick the new day up by its existing.
 
+And feel free to ignore my opinionated setup and use your own! The scaffold,
+the recipes, the editor config, even the crate layout are how *I* like to solve
+these — none of it is what the workshop is teaching. If you already have a way
+you enjoy writing Rust, bring it. All the FFI steps need from you is a crate
+that builds and a function worth calling from another language.
+
 ## Read them critically
 
 These are solved days, written by hand over several years, and they do not all
