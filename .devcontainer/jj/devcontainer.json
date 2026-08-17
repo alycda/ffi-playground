@@ -28,6 +28,8 @@
                 "jjk.jjk",
                 "jnoortheen.nix-ide",
                 "mk12.better-git-line-blame",
+                "mkhl.direnv",
+                "rust-lang.rust-analyzer",
                 "skellock.just",
                 "visualjj.visualjj"
             ],

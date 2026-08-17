@@ -1,14 +1,22 @@
-// Excludes for a repo that carries eight toolchains at once. Three separate
-// knobs, because they answer three different questions:
-//
-//   files.exclude       what the Explorer shows      (inherited by search)
-//   search.exclude      what ripgrep walks           (adds to files.exclude)
-//   files.watcherExclude  what the fs watcher tracks (independent; CPU/battery)
-//
-// search.useIgnoreFiles is on by default, so .gitignore already keeps most of
-// this out of search results. The watcher does NOT read .gitignore — that list
-// has to be spelled out, and it is where the real performance win lives.
 {
+  // The extension host inherits none of direnv's env — its PATH is the nix
+  // profile plus the system dirs — so rust-analyzer starts with no cargo or
+  // rustc and stays broken until something restarts it. mkhl.direnv (see
+  // extensions.json) does that itself with this set. It lives here rather
+  // than in the devcontainer.json files so attendees running VS Code against
+  // a local nix-shell get it too, not just the container ones.
+  "direnv.restart.automatic": true
+
+  // Excludes for a repo that carries eight toolchains at once. Three separate
+  // knobs, because they answer three different questions:
+  //
+  //   files.exclude       what the Explorer shows      (inherited by search)
+  //   search.exclude      what ripgrep walks           (adds to files.exclude)
+  //   files.watcherExclude  what the fs watcher tracks (independent; CPU/battery)
+  //
+  // search.useIgnoreFiles is on by default, so .gitignore already keeps most of
+  // this out of search results. The watcher does NOT read .gitignore — that list
+  // has to be spelled out, and it is where the real performance win lives.
   "files.exclude": {
     // --- VCS -------------------------------------------------------------
     // Colocated jj + git. **/.git is excluded by VS Code's defaults already.

@@ -7,6 +7,9 @@ export USER := shell("whoami")
 _default:
     @just --list
 
+# the AoC day library: scaffold and run days, e.g. `just days new 2022-12-01`
+mod days
+
 # verify required toolchain + optional tracks (always exits 0; CI: run scripts/self-check.sh)
 check:
     -./scripts/self-check.sh
