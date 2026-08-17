@@ -7,9 +7,12 @@ test day:
 run day:
     cd {{day}} && cargo run
 
-# every day at once, exactly what .github/workflows/rust.yml gates on — run
-# this before pushing. The recipes above take one day; CI never does, because
-# `members = ["*"]` means a change to a shared dep breaks days you didn't touch.
+# every day at once: the three gates .github/workflows/rust.yml runs on every
+# push — run this before pushing. Not all of CI: the workflow also checks the
+# workspace against rustc 1.85, which needs a second toolchain installed, so
+# this can pass while CI fails on the floor. The recipes above take one day; CI
+# never does, because `members = ["*"]` means a change to a shared dep breaks
+# days you didn't touch.
 verify:
     cargo test --workspace --locked
     cargo fmt --all --check

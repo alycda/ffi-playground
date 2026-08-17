@@ -41,12 +41,17 @@ From the repo root, `days` is a `just` module:
 ```sh
 just days test 2023-12-01    # one day
 just days run  2023-12-01    # against your own input
-just days verify             # every day, exactly what CI gates on
+just days verify             # every day: the three gates CI runs on every push
 ```
 
 `just days verify` is the one to run before pushing. The per-day recipes take one day; CI
 never does, because every day is a workspace member sharing one lockfile — so a change to
 a shared dependency can break a day you never touched.
+
+It is not *all* of CI. The workflow also checks the workspace against rustc 1.85 — the
+edition-2024 floor every day declares — and that job needs a second toolchain installed,
+which an attendee machine has no reason to have. So verify passing means the tests, the
+formatting and the lints are clean, not that the floor still holds.
 
 ## Adding a day
 
