@@ -5,7 +5,7 @@
   // extensions.json) does that itself with this set. It lives here rather
   // than in the devcontainer.json files so attendees running VS Code against
   // a local nix-shell get it too, not just the container ones.
-  "direnv.restart.automatic": true
+  "direnv.restart.automatic": true,
 
   // Excludes for a repo that carries eight toolchains at once. Three separate
   // knobs, because they answer three different questions:
