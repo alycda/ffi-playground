@@ -7,10 +7,14 @@ Nix's own glibc, and on aarch64-linux (and x86_64-linux) it comes straight
 from the binary cache: ~660 MiB download, 3 GiB unpacked, **nothing compiles
 from source**.
 
-## Status 2026-08-17: `import Foundation` does not compile here
+## Status 2026-08-17: fixed — and it took four different failures
 
-Read this before the "Verified" section below, which it supersedes. A
-two-line hello-world fails in this container:
+Read this before the "Verified" section below, which it supersedes. The track
+is green now — `days/2024-12-03/uniffi/build-and-test.sh swift` passes in this
+container — but it did not start that way, and the route matters more than the
+destination.
+
+It began with a two-line hello-world failing:
 
 ```sh
 printf 'import Foundation\nprint("hi")\n' > /tmp/t.swift && swiftc /tmp/t.swift -o /tmp/t1
@@ -36,43 +40,58 @@ in: the profile held exactly `Foundation`, `FoundationNetworking` and
 `FoundationXML` and nothing else. No flag fixes a module that was never
 installed, so `home.nix` now installs `swiftPackages.Dispatch` too.
 
-**3. `cannot load underlying module for 'Dispatch'`** — where it stands now.
-The Swift `Dispatch` module resolves, but the C library it wraps cannot be
-loaded. Adding `-Xcc -I~/.nix-profile/include` (libdispatch's headers carry
-their own module map under `include/dispatch/`) did not clear it.
+**3. `cannot load underlying module for 'Dispatch'`.** The Swift `Dispatch`
+module resolves, but the C library it wraps cannot be loaded — and
+`-Xcc -I~/.nix-profile/include` did not help, because that directory did not
+exist. Both corelibs packages are **multi-output**: `out` holds the libraries
+and Swift modules, `dev` holds the C headers and their module maps. `home.nix`
+installs the default output, so the modules were present and the headers they
+wrap were nowhere on disk. Fixed by installing
+`swiftPackages.Foundation.dev` and `swiftPackages.Dispatch.dev` too.
+
+**4. `cannot find -lBlocksRuntime` / `-ldispatch` / `-lswiftDispatch`.** Now it
+compiles and fails to *link*: the Swift module lives in `lib/swift/…` and the
+shared objects live in plain `lib/` of the same package. Compiling and linking
+want different directories, and both errors name the same module — which is why
+failure 4 reads like failure 3 not being fixed.
+
+Two more were the harness's fault rather than the container's, and are fixed in
+`days/2024-12-03/uniffi/`: Swift permits top-level statements only in a file
+named `main.swift` (so the harness uses `@main`), and the generated wrapper's
+filenames follow the namespace, so the script finds them instead of spelling
+them.
 
 ### What this means
 
-The container as shipped cannot build a Swift file that imports Foundation,
-which is every non-trivial Swift file. The **"Verified" section below is not
-reproducible** — its example could not have compiled with `import Foundation`
-present, and caveat 1 there describes a *runtime* libdispatch failure, which
-is a strictly later stage than what fails now. Most likely nixpkgs moved
-underneath it, which that section already names as the expected trigger.
+The **"Verified" section below is not reproducible as written** — its example
+could not have compiled with `import Foundation` present, and caveat 1 there
+describes a *runtime* libdispatch failure, a strictly later stage than failure 1
+above. nixpkgs moved underneath it, which that section already names as the
+expected trigger. It is kept as the record of what was claimed and when.
 
-### Next things worth trying, cheapest first
+The generalizable lesson, which is now a book chapter
+(`book/src/boundary.md`): a module resolving is not the same as its underlying
+library loading, which is not the same as that library being linkable, which is
+not the same as it being findable at run time. Four questions, four
+directories, one module name in every error message.
 
-1. `ls ~/.nix-profile/include` and
-   `find ~/.nix-profile/include -name 'module*map'` — if libdispatch's headers
-   are not in the profile at all, its module map cannot be found by any flag,
-   and the package set is the problem rather than the search paths.
-2. Build through nixpkgs' Swift stdenv adapter (`swiftPackages.stdenv`) or
-   `swiftpm` rather than calling `swiftc` from a home-manager profile. Those
-   wire the corelibs search paths themselves, which is why this only bites a
-   hand-rolled `swiftc` invocation.
-3. Pin nixpkgs to a revision where this worked, if one can be found.
-4. Take this file's own escape hatch (bottom): delete the folder and let the
-   justfile's swift.org pointer be the answer again. With the workshop three
-   weeks out, that is not a defeat — Swift already has a golden day's harness
-   written, and every other track is verified.
+### If it rots again
 
-### What the day library does about it meanwhile
+The flags in the day library's `build-and-test.sh` are the fragile part: they
+name profile-relative paths, which is a packaging detail rather than a Swift
+contract. A sturdier route, if this needs revisiting, is to build through
+nixpkgs' Swift stdenv adapter or `swiftpm`, which wire the corelibs search
+paths themselves — this only bites a hand-rolled `swiftc` invocation from a
+home-manager profile. Failing that, this file's escape hatch (bottom) still
+stands.
 
-`days/2024-12-03/uniffi/build-and-test.sh swift` carries the `-I`/`-L` and
-`-Xcc` flags from steps 1–3. They are harness-side workarounds for a
-container-side problem and should be reconsidered once this is fixed — but
-they are not wrong on their own terms: Foundation genuinely is not on
-`swiftc`'s default search path in this profile.
+### What the day library carries
+
+`days/2024-12-03/uniffi/build-and-test.sh swift` holds the `-I`, `-L` and
+`-Xcc` flags for failures 1, 3 and 4, plus discovery of the generated
+filenames. They are harness-side compensation for a packaging layout, and they
+are not wrong on their own terms: Foundation genuinely is not on `swiftc`'s
+default search path in this profile.
 
 ## Verified (2026-08, aarch64-linux container, nixpkgs unstable) — SUPERSEDED
 
