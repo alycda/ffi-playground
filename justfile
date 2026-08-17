@@ -12,7 +12,7 @@ mod days
 
 # verify required toolchain + optional tracks (always exits 0; CI: run scripts/self-check.sh)
 check:
-    -./scripts/self-check.sh
+    -@./scripts/self-check.sh
 
 # Language-track setup (Exercise 3 — pick ONE track; see `just check`).
 # Required Rust/C toolchain comes from shell.nix, not from these recipes.
@@ -49,6 +49,7 @@ setup-kotlin:
 setup-kotlin:
     @echo "Recommended: sdkman — https://sdkman.io/install then:"
     @echo "  sdk install java 17-tem && sdk install kotlin"
+    @echo "Or skip all that: reopen the repo in the 'Kotlin/JNI track' devcontainer."
 
 # Homebrew ≥6 refuses formulae from untrusted third-party taps, hence the
 # `brew trust`; its `-` prefix keeps older brews (no trust subcommand) working.
