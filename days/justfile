@@ -23,7 +23,7 @@ new day:
         exit 1
     fi
     cp -R _template "{{day}}"
-    rm -rf "{{day}}/target" "{{day}}/Cargo.lock"
+    rm -rf "{{day}}/target"
     ident="$(printf '%s' "{{day}}" | tr - _)"
     # `sed -i` takes an argument on BSD but not GNU, so write via a temp file
     find "{{day}}" -type f \( -name '*.rs' -o -name '*.toml' \) | while read -r f; do

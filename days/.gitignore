@@ -2,7 +2,3 @@
 # .gitkeep keeps the directory present.
 **/inputs/*
 !**/inputs/.gitkeep
-
-# The template is checkable in place (`just check _template`), which leaves a
-# lock behind. Each day generates its own on first build.
-_template/Cargo.lock
