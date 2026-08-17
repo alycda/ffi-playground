@@ -19,4 +19,4 @@
 [workspace]
 resolver = "3"
 members = ["*"]
-exclude = ["target"]
+exclude = ["target", "inputs"]

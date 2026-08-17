@@ -9,7 +9,7 @@ use aoc_ornaments::{Part, Solution};
 /// `inputs/2015-12-01.txt` alongside this crate. Read at runtime rather than
 /// with `include_str!` so the crate still builds and tests without one.
 fn main() -> miette::Result<()> {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/inputs/2015-12-01.txt");
+    let path = "../inputs/2015-12-01.txt";
     let input = std::fs::read_to_string(path)
         .map_err(|e| miette::miette!("could not read {}: {}", path, e))?;
 
