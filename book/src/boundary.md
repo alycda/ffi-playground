@@ -9,8 +9,10 @@ This chapter in particular is a record of things going wrong, written after
 they went wrong. Reading it first will not stop them happening to you, and it
 is not meant to. Take it now if that is how you prepare, or leave it and come
 back when something breaks and you want the diagnosis. It is also published
-ahead of the code it describes, so some of what follows refers to material that
-is not in the repo yet.
+ahead of the code it describes: the caught-panic transcript, the three language
+harnesses, and the break-it-on-purpose exercises at the end all refer to material
+that is not in the repo yet. The Rust half of the golden days is; the FFI half is
+not.
 
 > Every error in this chapter is one we hit, in the order we hit it. None of
 > them are here as warnings to help you avoid them. They're here because
@@ -64,8 +66,10 @@ doesn't get an exception, it gets a corpse: with Kotlin, the JVM goes down.
 So the boundary catches it. `catch_unwind` on the Rust side turns a panic into
 whatever that boundary's failure looks like — `-2` in C and Dart, a typed error
 in the generated tracks. This day earns it: its scanner panics on `mul(`
-followed by a non-digit, and a downloaded input for the *other* golden day
-panics on a trailing blank line. Both are one keystroke away from real.
+followed by a non-digit, and a downloaded input for the *other* golden day (the
+two days worked all the way through every track — see [The Day
+Library](./days.md)) panics on a trailing blank line. Both are one keystroke
+away from real.
 
 Swift, receiving a caught Rust panic:
 
@@ -97,7 +101,10 @@ you thought you were learning.
 **Kotlin is JNA, not JNI.** UniFFI's Kotlin backend calls the shared library
 through JNA, so `jna.jar` must be on the classpath at compile *and* run time,
 and the directory holding the library must be on `jna.library.path`. A JDK and
-`kotlinc` alone will compile a harness that can never run.
+`kotlinc` alone will compile a harness that can never run — and that is exactly
+what `just check` calls ready, so it will not catch this for you. The Kotlin
+devcontainer is the one setup path that supplies the jar and exports `JNA_JAR`;
+on the brew and sdkman paths you fetch it yourself.
 
 **A module resolving is not the same as its library loading.** Getting Swift to
 work on this repo's Nix toolchain took four failures that all named `Dispatch`
@@ -137,8 +144,8 @@ you.
 
 If you get to the end of a track and nothing went wrong, you were lucky, not
 finished. Break it on purpose: comment out the `catch_unwind` and watch the
-process die; feed the C entry point a NULL; hand a Kotlin caller an empty
-string. Then you have actually seen the boundary.
+process die; feed the C entry point a NULL; hand a Kotlin caller `mul(`
+followed by a non-digit. Then you have actually seen the boundary.
 
 Your Rust being correct buys you less than you'd think. The boundary is where
 the ownership rules, the error conventions, the encoding assumptions and the
