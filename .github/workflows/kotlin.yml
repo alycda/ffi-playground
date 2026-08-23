@@ -1,0 +1,121 @@
+# Kotlin/JNA track CI (exercises/ex3-bindings/kotlin/).
+#
+# Same rule as python.yml: the exercise is unfinished on purpose, so this
+# never tests that Exercise 3 passes. It tests the pristine-state contract —
+# everything the attendee did NOT write must already work, so a fresh
+# checkout fails (or stops) exactly where it is supposed to:
+#
+#   1. the download command ex3.kts documents still fetches the pinned JNA
+#      bytes — the workflow runs that command verbatim, checksum included,
+#      so the one binary-you-execute instruction in the workshop stays true;
+#   2. without the Ex 2 library, the script says "No Ex 2 library found."
+#      and exits 1 — the guard, not a raw UnsatisfiedLinkError that reads
+#      as a classpath problem;
+#   3. with the library built, the script runs to its "fill in the TODOs"
+#      line — proving the JDK, kotlinc, the JNA classpath, and the
+#      jna.library.path lookup all work before any attendee code exists.
+#
+# kotlinc comes from a pinned JetBrains release zip because no runner ships
+# it; the checksum below was computed from that download, same policy as
+# the JNA jar. The workshop floor is "JDK 17+", so CI pins exactly 17 —
+# a newer default JDK passing says nothing about the floor.
+
+name: Kotlin track
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+
+# Least privilege: this workflow only reads the repo and runs the track.
+permissions:
+  contents: read
+
+concurrency:
+  group: kotlin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  KOTLIN_VERSION: 2.1.0
+  KOTLIN_SHA256: b6698d5728ad8f9edcdd01617d638073191d8a03139cc538a391b4e3759ad297
+
+jobs:
+  pristine:
+    name: pristine / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: install kotlinc (pinned release zip)
+        run: |
+          curl -fsSL -o kotlin-compiler.zip \
+            "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip"
+          echo "${KOTLIN_SHA256}  kotlin-compiler.zip" | shasum -a 256 -c -
+          unzip -q kotlin-compiler.zip -d "${RUNNER_TEMP}"
+          echo "${RUNNER_TEMP}/kotlinc/bin" >> "$GITHUB_PATH"
+      # The exact command the ex3.kts header gives attendees, checksum and
+      # all. If Maven Central moves, the jar changes, or the documented
+      # command rots, this step is where it shows. (shasum, not sha256sum:
+      # present on both runner OSes, and the header documents both.)
+      - name: download the JNA jar the way ex3.kts says to
+        working-directory: exercises/ex3-bindings/kotlin
+        run: |
+          curl -fsSL -o jna.jar \
+            https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar
+          echo "34ed1e1f27fa896bca50dbc4e99cf3732967cec387a7a0d5e3486c09673fe8c6  jna.jar" \
+            | shasum -a 256 -c -
+      # Before the library exists: the guard must speak, not JNA. An
+      # UnsatisfiedLinkError here means the guard regressed to the failure
+      # mode the script's own comment warns about.
+      - name: without the Ex 2 library, the guard speaks
+        working-directory: exercises/ex3-bindings/kotlin
+        run: |
+          status=0
+          out=$(kotlinc -script ex3.kts -classpath "$PWD/jna.jar" \
+                  -J-Djna.library.path=../../target/release 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::ex3.kts succeeded without the Ex 2 library present'
+            exit 1
+          fi
+          case "$out" in
+            *'No Ex 2 library found.'*) ;;
+            *) echo '::error::missing-library run did not hit the guard — attendees get a raw UnsatisfiedLinkError again'
+               exit 1 ;;
+          esac
+      # The Rust steps come after the guard on purpose: rust-cache restores
+      # exercises/target, and the guard's whole claim is that the library is
+      # absent — nothing that might materialize one may run first.
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: exercises
+      # --locked for the same reason as rust.yml: exercises/Cargo.lock is
+      # what pins the attendee's build, so it must be committed and current.
+      - run: cargo build --release --locked -p ex2-c-glue
+        working-directory: exercises
+      - name: pristine ex3.kts runs to its TODO line
+        working-directory: exercises/ex3-bindings/kotlin
+        run: |
+          status=0
+          out=$(kotlinc -script ex3.kts -classpath "$PWD/jna.jar" \
+                  -J-Djna.library.path=../../target/release 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -ne 0 ]; then
+            echo '::error::pristine ex3.kts failed with the library present — a part the attendee did not write is broken'
+            exit 1
+          fi
+          case "$out" in
+            *'fill in the TODOs'*) ;;
+            *) echo '::error::pristine ex3.kts exited 0 without reaching its TODO line'
+               exit 1 ;;
+          esac

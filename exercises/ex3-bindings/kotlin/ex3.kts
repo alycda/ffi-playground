@@ -12,7 +12,14 @@
 //
 //   curl -fsSL -o jna.jar \
 //     https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar
+//   echo "34ed1e1f27fa896bca50dbc4e99cf3732967cec387a7a0d5e3486c09673fe8c6  jna.jar" \
+//     | sha256sum -c -          # macOS: shasum -a 256 -c -
 //   export JNA_JAR="$PWD/jna.jar"
+//
+// Check what arrived before putting it on a JVM classpath. The URL pins a
+// version, which says nothing about the bytes you got — and this is the one
+// step in the whole workshop that asks you to download a binary and then
+// execute it. The checksum is the same constant verify.sh pins.
 //
 // Run from this directory. Note that the jar and the library are found by
 // two different mechanisms: -classpath is where the JVM looks for JNA

@@ -1,0 +1,101 @@
+# Dart track CI (exercises/ex3-bindings/dart/).
+#
+# Same rule as python.yml: the exercise is unfinished on purpose, so this
+# never tests that Exercise 3 passes. It tests the pristine-state contract —
+# everything the attendee did NOT write must already work, so a fresh
+# checkout fails exactly where it is supposed to:
+#
+#   1. `dart pub add ffi` — step 1 in ex3.dart's header — actually runs.
+#      It once could not, because the directory had no pubspec, and
+#      `just check` still said "Dart ready"; the scaffold fix stays fixed
+#      by being executed here;
+#   2. without the Ex 2 library, ex3.dart says "No Ex 2 library at ..."
+#      and exits 1 — the guard branch, with the build hint;
+#   3. with the library built, it runs to its "fill in the TODOs" line —
+#      proving the SDK, the package setup, the platform .so/.dylib name
+#      choice, and the library lookup all work before any attendee code
+#      exists. (The pristine file exits 1 on purpose; only the message
+#      separates this from the guard, so both assertions check the text,
+#      not just the code.)
+
+name: Dart track
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+
+# Least privilege: this workflow only reads the repo and runs the track.
+permissions:
+  contents: read
+
+concurrency:
+  group: dart-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  pristine:
+    name: pristine / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      # The documented step 1, verbatim. package:ffi does not resolve until
+      # this runs, so everything below depends on it — which is the point.
+      - name: dart pub add ffi, as ex3.dart says to
+        working-directory: exercises/ex3-bindings/dart
+        run: dart pub add ffi
+      - name: without the Ex 2 library, the guard speaks
+        working-directory: exercises/ex3-bindings/dart
+        run: |
+          status=0
+          out=$(dart run ex3.dart 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::ex3.dart succeeded without the Ex 2 library present'
+            exit 1
+          fi
+          case "$out" in
+            *'No Ex 2 library at'*) ;;
+            *) echo '::error::missing-library run did not hit the guard branch'
+               exit 1 ;;
+          esac
+      # The Rust steps come after the guard on purpose: rust-cache restores
+      # exercises/target, and the guard's whole claim is that the library is
+      # absent — nothing that might materialize one may run first.
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: exercises
+      # --locked for the same reason as rust.yml: exercises/Cargo.lock is
+      # what pins the attendee's build, so it must be committed and current.
+      - run: cargo build --release --locked -p ex2-c-glue
+        working-directory: exercises
+      - name: pristine ex3.dart fails at its TODO line, not earlier
+        working-directory: exercises/ex3-bindings/dart
+        run: |
+          status=0
+          out=$(dart run ex3.dart 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::pristine ex3.dart exited 0 — the exercise can pass before the attendee wrote anything'
+            exit 1
+          fi
+          case "$out" in
+            *'No Ex 2 library at'*)
+              echo '::error::library lookup failed with the library built — the .so/.dylib name or target-dir logic regressed'
+              exit 1 ;;
+            *'fill in the TODOs'*) ;;
+            *) echo '::error::pristine ex3.dart failed before its TODO line — a part the attendee did not write is broken'
+               exit 1 ;;
+          esac
