@@ -1,0 +1,23 @@
+# The attendee's working directory, and deliberately NOT part of days/.
+#
+# days/Cargo.toml claims every directory beside it with `members = ["*"]`, so
+# putting the exercises there would have been one line. It would also have
+# been wrong. The exercises are built around `todo!()`: they are supposed to
+# be unfinished when the attendee arrives, and finished only by them. days/ is
+# tested with `cargo test --workspace` and linted with `-D warnings`, so an
+# unfinished crate in that tree breaks `just days verify` for everyone,
+# including people working on a day that has nothing to do with it.
+#
+# So: a second workspace, with its own Cargo.lock. .github/workflows/rust.yml
+# runs with `working-directory: days` and never looks in here, which is the
+# same decision expressed a second way. An exercise that could go green before
+# the attendee wrote anything would not be an exercise.
+#
+# Members are listed by name rather than globbed. There are three of them, one
+# per workshop block, and they arrive when their block does — a glob buys
+# nothing here and would repeat days/'s trap, where a non-crate directory
+# breaks every cargo command in the tree. ex3-bindings is not a Rust crate at
+# all (it is one directory per language track), so it is deliberately absent.
+[workspace]
+resolver = "3"
+members = ["ex1-pure-rust", "ex2-c-glue"]

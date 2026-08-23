@@ -168,4 +168,3 @@ else
   echo "${RED}❌ $required_failures required tool(s) missing.${NC} Fix the items above, then re-run: ./scripts/self-check.sh"
   exit 1
 fi
-

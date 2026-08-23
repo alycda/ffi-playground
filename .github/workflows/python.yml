@@ -1,0 +1,139 @@
+# Python track CI (exercises/ex3-bindings/python/).
+#
+# The exercises are unfinished on purpose — "an exercise that could go green
+# before the attendee wrote anything would not be an exercise"
+# (exercises/Cargo.toml). So this workflow never tests that Exercise 3
+# passes. It tests the pristine-state contract instead: everything the
+# attendee did NOT write must already work, so that a fresh checkout fails
+# at exactly the first TODO boundary and nowhere earlier.
+#
+# On a clean checkout that means:
+#   1. the Ex 2 cdylib builds — todo!() compiles, it only aborts when called;
+#   2. bindings.py finds that library, imports cffi, parses the stub cdef()
+#      (a comment and nothing else — cdef() tolerates it), dlopens the
+#      library, and exits saying "TODO 3 not done yet".
+#
+# Each earlier failure is a distinct regression this exists to catch:
+# "No Ex 2 library" is the shared-workspace-target lookup breaking, an
+# ImportError is a broken cffi install, and a cdef ParseError is a cffi
+# release changing what the stub can get away with.
+
+name: Python track
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+
+# Least privilege: this workflow only reads the repo and runs the track.
+permissions:
+  contents: read
+
+concurrency:
+  group: python-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  pristine:
+    name: pristine / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: exercises
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      # The runner's python plus a direct cffi install, not `just
+      # setup-python`: the venv recipe is attendee ergonomics, and what is
+      # under test is bindings.py's actual requirement — any python3 that
+      # can import cffi.
+      - run: pip install cffi
+      # --locked for the same reason as rust.yml: exercises/Cargo.lock is
+      # what pins the attendee's build, so it must be committed and current.
+      - run: cargo build --release --locked -p ex2-c-glue
+        working-directory: exercises
+      - name: pristine bindings.py fails at TODO 3, not earlier
+        working-directory: exercises/ex3-bindings/python
+        run: |
+          status=0
+          out=$(python3 bindings.py 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::pristine bindings.py exited 0 — the exercise can pass before the attendee wrote anything'
+            exit 1
+          fi
+          case "$out" in
+            *'TODO 3 not done yet'*) echo 'fails at TODO 3, as a fresh checkout should' ;;
+            *) echo '::error::pristine bindings.py failed before TODO 3 — a part the attendee did not write is broken'
+               exit 1 ;;
+          esac
+      # The same assertion with the library built to a custom target
+      # directory. bindings.py promises to honour CARGO_TARGET_DIR exactly
+      # as build-and-test.sh does; the promise broke once (a hardcoded
+      # ../../target) and broke quietly — Ex 2 built and passed, then the
+      # Python track said there was no library. This keeps it fixed.
+      - name: pristine run honours CARGO_TARGET_DIR
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/ex3-target
+        run: |
+          cargo build --release --locked -p ex2-c-glue --manifest-path exercises/Cargo.toml
+          cd exercises/ex3-bindings/python
+          status=0
+          out=$(python3 bindings.py 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::pristine bindings.py exited 0 — the exercise can pass before the attendee wrote anything'
+            exit 1
+          fi
+          case "$out" in
+            *'TODO 3 not done yet'*) ;;
+            *) echo '::error::with CARGO_TARGET_DIR set, bindings.py did not reach TODO 3 — the library lookup regressed'
+               exit 1 ;;
+          esac
+
+  floor:
+    name: python 3.10 floor
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: exercises
+      # Pinned to the floor self-check.sh sends attendees away believing
+      # ("python.org, 3.10+"). cffi ships wheels per interpreter version, so
+      # the first cffi release to drop 3.10 would otherwise be discovered by
+      # an attendee on exactly 3.10, mid-workshop.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install cffi
+      - run: cargo build --release --locked -p ex2-c-glue
+        working-directory: exercises
+      - name: pristine bindings.py fails at TODO 3, not earlier
+        working-directory: exercises/ex3-bindings/python
+        run: |
+          status=0
+          out=$(python3 bindings.py 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::pristine bindings.py exited 0 — the exercise can pass before the attendee wrote anything'
+            exit 1
+          fi
+          case "$out" in
+            *'TODO 3 not done yet'*) ;;
+            *) echo '::error::pristine bindings.py failed before TODO 3 on the 3.10 floor'
+               exit 1 ;;
+          esac

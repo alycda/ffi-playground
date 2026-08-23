@@ -1,0 +1,14 @@
+# `dart pub add ffi` — step 1 in ex3.dart's header — refuses to run outside a
+# package, and this directory had no pubspec, so the Dart track failed on its
+# first documented command. `just check` still reported "Dart ready", because
+# it probes `command -v dart` and nothing more.
+#
+# Deliberately minimal, and `ffi` is deliberately NOT listed: `dart pub add
+# ffi` is still the step that adds it. This only gives that step somewhere to
+# run.
+name: ex3_bindings
+description: Exercise 3 - Dart bindings against the Exercise 2 cdylib.
+publish_to: none
+
+environment:
+  sdk: ^3.0.0

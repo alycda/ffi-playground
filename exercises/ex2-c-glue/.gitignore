@@ -1,0 +1,15 @@
+# The header YOU generate, in step 3 of the exercise.
+#
+# Note that this is the opposite of what ../../days/*/c-glue/ does: those
+# headers are committed on purpose, because they are finished artifacts meant
+# to be read (and to work as a fallback when cbindgen is missing). This one is
+# machine output from a file that is mostly `todo!()` — it describes whatever
+# signature you happened to have when you last ran the script, so committing
+# it would mean committing a snapshot of your half-finished work.
+#
+# The rule is scoped to this directory precisely so it cannot reach the
+# tracked headers next door.
+/include/
+
+# The compiled C harness lives under target/, which the root .gitignore
+# already covers.

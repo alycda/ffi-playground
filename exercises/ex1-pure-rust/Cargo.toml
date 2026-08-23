@@ -1,0 +1,18 @@
+# Exercise 1: your solution, in pure Rust, with no dependencies.
+#
+# The empty [dependencies] is the point, not an oversight. The days in
+# ../../days/ are not std-only — they build on aoc-ornaments and miette,
+# because stripping a real crate's trait and error type at the boundary is
+# the thing worth watching happen in Exercise 2. Your Exercise 1 does not
+# have to carry that weight: solve the puzzle however you like, and add a
+# dependency here if you want one.
+[package]
+name = "ex1-pure-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[lib]
+name = "ex1_pure_rust"
+
+[dependencies]

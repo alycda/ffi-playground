@@ -1,0 +1,92 @@
+# CI for scripts/self-check.sh — the attendee's first command.
+#
+# The script guards the worst failure mode a workshop has: a broken first
+# command in a room with no recovery time. Its contract is small enough to
+# machine-check from both sides:
+#
+#   exit 0  when the REQUIRED toolchain (Rust + C + cbindgen) is present
+#           and runnable — optional tracks never affect the exit code;
+#   exit 1  when something required is missing, said usefully.
+#
+# `ready` proves the first arm on machines nobody here provisioned by hand.
+# `bare` proves the second arm in a container with no toolchain at all —
+# the arm a fully-provisioned developer machine can never exercise.
+#
+# What green here does NOT mean: most of the script's branches encode
+# macOS-specific degraded states — the xcrun swiftc stub without a CLT, the
+# /usr/bin/java stub without a JDK, the broken-SDK linker failure. A GitHub
+# macos runner ships full Xcode, so those branches cannot be reached from
+# CI in either direction. Green validates the exit-code contract and the
+# happy paths; the stub-detection branches still need an occasional real
+# Mac.
+
+name: Self-check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+
+# Least privilege: this workflow only reads the repo and runs the script.
+permissions:
+  contents: read
+
+concurrency:
+  group: self-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ready:
+    name: ready / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      # Prebuilt binary for the same reason pages.yml gives: `cargo install
+      # cbindgen` compiles it from source on every run.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cbindgen
+      # The exit code IS the assertion: with the required toolchain present
+      # (the runner provides the C compiler), this must be 0.
+      - run: ./scripts/self-check.sh
+
+  bare:
+    name: bare machine says no, usefully
+    runs-on: ubuntu-latest
+    # No Rust, no C compiler, no cbindgen — the machine of an attendee who
+    # cloned first and read second. Everything the script needs to *run*
+    # (bash, coreutils, sed) is in the base image; everything it *checks
+    # for* is absent.
+    container: debian:stable-slim
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: exits 1 and names the missing tools
+        run: |
+          status=0
+          out=$(./scripts/self-check.sh 2>&1) || status=$?
+          printf '%s\n' "$out"
+          if [ "$status" -eq 0 ]; then
+            echo '::error::self-check passed on a machine with no toolchain'
+            exit 1
+          fi
+          case "$out" in
+            *'required tool(s) missing'*) ;;
+            *) echo '::error::self-check failed without the summary line — it crashed rather than reported'
+               exit 1 ;;
+          esac
+
+  lint:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      # shellcheck is preinstalled on ubuntu runners.
+      - run: shellcheck scripts/self-check.sh

@@ -1,0 +1,22 @@
+# Exercise 2: the C ABI wrapper around your Exercise 1 solution.
+#
+# Note what this crate does NOT contain: any puzzle logic. It depends on
+# ex1-pure-rust by path and owns only the boundary. That split is the pattern
+# — every worked example in ../../days/ repeats it, and so does every later
+# track (UniFFI, Dart, Kotlin, Swift). If you find yourself wanting to edit
+# the puzzle to make the boundary easier, that is the exercise talking to you.
+[package]
+name = "ex2-c-glue"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[lib]
+name = "ex2_c_glue"
+# cdylib = a C-loadable shared library (.so/.dylib/.dll) with no Rust
+# metadata. That is what the C harness links against, and it is the one line
+# that turns a Rust crate into something C can open.
+crate-type = ["cdylib"]
+
+[dependencies]
+ex1-pure-rust = { path = "../ex1-pure-rust" }
