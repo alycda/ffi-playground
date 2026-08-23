@@ -2,7 +2,7 @@
 
 > **Workshop note: this step is already handled for you — we bypass it.**
 > The repo's ignore rules cover *every* language track (Rust, C, Python,
-> Swift, Kotlin/JNI, Dart) plus OS noise, even though Exercise 3 only needs
+> Swift, Kotlin/JNA, Dart) plus OS noise, even though Exercise 3 only needs
 > one track. Spare ignore rules cost nothing, and trying a second language
 > is an extension exercise — so nothing you build during the workshop will
 > ever show up as git noise. This chapter stays as the *why*.

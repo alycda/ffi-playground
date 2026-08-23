@@ -2,7 +2,7 @@
 # Workshop environment self-check.
 #
 # Verifies the REQUIRED toolchain (Rust + C + cbindgen) and reports on
-# OPTIONAL language tracks (Swift, Kotlin/JNI, Python/cffi, Dart).
+# OPTIONAL language tracks (Swift, Kotlin/JNA, Python/cffi, Dart).
 # Exit code is non-zero only when a REQUIRED tool is missing or broken —
 # pick ONE optional track; you do not need them all.
 #
@@ -125,12 +125,12 @@ fi
 # stub that exists but exits 1 ("Unable to locate a Java Runtime") until a
 # real JDK is linked — the keg-only case setup-kotlin's symlink hint covers.
 if command -v kotlinc >/dev/null 2>&1 && java -version >/dev/null 2>&1; then
-  printf ' %s %-12s ready\n' "$PASS" "Kotlin/JNI"
+  printf ' %s %-12s ready\n' "$PASS" "Kotlin/JNA"
   tracks_ready=$((tracks_ready + 1))
 elif command -v kotlinc >/dev/null 2>&1; then
-  printf ' %s %-12s kotlinc found, java not runnable %s(macOS: link the keg-only JDK — re-run: just setup-kotlin for the command)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
+  printf ' %s %-12s kotlinc found, java not runnable %s(macOS: link the keg-only JDK — re-run: just setup-kotlin for the command)%s\n' "$SKIP" "Kotlin/JNA" "$DIM" "$NC"
 else
-  printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — run: just setup-kotlin)%s\n' "$SKIP" "Kotlin/JNI" "$DIM" "$NC"
+  printf ' %s %-12s not installed %s(needs JDK 17+ and kotlinc — run: just setup-kotlin)%s\n' "$SKIP" "Kotlin/JNA" "$DIM" "$NC"
 fi
 # Prefer the repo-local venv even when it isn't activated: nix-shell prepends
 # its own python3 to the inherited PATH, shadowing an activated .venv — the

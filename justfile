@@ -36,7 +36,7 @@ setup-swift:
 setup-swift:
     @echo "Install the Swift toolchain from https://www.swift.org/install/"
 
-# Kotlin/JNI track: JDK + kotlinc via brew (keg-only JDK needs the symlink)
+# Kotlin/JNA track: JDK + kotlinc via brew (keg-only JDK needs the symlink)
 [macos]
 setup-kotlin:
     brew install openjdk kotlin
@@ -44,12 +44,12 @@ setup-kotlin:
     @echo "  sudo ln -sfn $(brew --prefix)/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk"
     @echo "then re-run: just check"
 
-# Kotlin/JNI track: sdkman is the recommended path on Linux
+# Kotlin/JNA track: sdkman is the recommended path on Linux
 [linux]
 setup-kotlin:
     @echo "Recommended: sdkman — https://sdkman.io/install then:"
     @echo "  sdk install java 17-tem && sdk install kotlin"
-    @echo "Or skip all that: reopen the repo in the 'Kotlin/JNI track' devcontainer."
+    @echo "Or skip all that: reopen the repo in the 'Kotlin/JNA track' devcontainer."
 
 # Homebrew ≥6 refuses formulae from untrusted third-party taps, hence the
 # `brew trust`; its `-` prefix keeps older brews (no trust subcommand) working.

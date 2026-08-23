@@ -113,7 +113,7 @@ need them all:
 ```sh
 just setup-python   # repo-local venv with cffi (python3 comes from shell.nix)
 just setup-swift    # Swift    (installer on macOS; pointers on Linux)
-just setup-kotlin   # Kotlin/JNI (JDK 17+ + kotlinc; brew on macOS, sdkman on Linux)
+just setup-kotlin   # Kotlin/JNA — Java Native Access (JDK 17+ + kotlinc; brew on macOS, sdkman on Linux)
 just setup-dart     # Dart     (brew tap on macOS; pointers on Linux)
 ```
 

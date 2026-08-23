@@ -3,7 +3,7 @@
 // adds kotlinc + JDK 17). devcontainer.json has no "extends" — keep in sync
 // by hand.
 {
-    "name": "FFI playground (Kotlin/JNI track)",
+    "name": "FFI playground (Kotlin/JNA track)",
     "image": "debian:bookworm-slim",
     "mounts": [
         "source=claude-auth,target=/root/.claude,type=volume"
